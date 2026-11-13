@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { CashflowPoint } from '@/api/generated/model'
 import { ChartCard } from '@/components/charts/ChartCard'
@@ -11,12 +12,17 @@ const SERIES = [
 ] as const
 
 export function CashflowChart({ data, loading }: { data?: CashflowPoint[]; loading: boolean }) {
-  const rows = (data ?? []).map((p) => ({
-    month: p.month,
-    income: Number(p.income),
-    expense: Number(p.expense),
-    net: Number(p.net),
-  }))
+  // Memo: mesma referência entre renders evita o Recharts reanimar (ex.: troca de tema).
+  const rows = useMemo(
+    () =>
+      (data ?? []).map((p) => ({
+        month: p.month,
+        income: Number(p.income),
+        expense: Number(p.expense),
+        net: Number(p.net),
+      })),
+    [data],
+  )
   const empty = rows.every((r) => r.income === 0 && r.expense === 0)
 
   return (
@@ -42,7 +48,7 @@ export function CashflowChart({ data, loading }: { data?: CashflowPoint[]; loadi
         </ul>
       }
     >
-      <div className="h-64" aria-hidden="true">
+      <div className="min-h-64 flex-1" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={rows} barGap={2} barCategoryGap="28%" margin={{ left: 4, right: 4 }}>
             <CartesianGrid vertical={false} stroke="var(--border)" />
@@ -91,27 +97,30 @@ export function CashflowChart({ data, loading }: { data?: CashflowPoint[]; loadi
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <table className="sr-only">
-        <caption>Fluxo de caixa mensal</caption>
-        <thead>
-          <tr>
-            <th scope="col">Mês</th>
-            <th scope="col">Receitas</th>
-            <th scope="col">Despesas</th>
-            <th scope="col">Resultado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(data ?? []).map((p) => (
-            <tr key={p.month}>
-              <th scope="row">{monthLong(p.month)}</th>
-              <td>{formatBRL(p.income)}</td>
-              <td>{formatBRL(p.expense)}</td>
-              <td>{formatBRL(p.net)}</td>
+      {/* <table> ignora o width do sr-only: o wrapper é que esconde */}
+      <div className="sr-only">
+        <table>
+          <caption>Fluxo de caixa mensal</caption>
+          <thead>
+            <tr>
+              <th scope="col">Mês</th>
+              <th scope="col">Receitas</th>
+              <th scope="col">Despesas</th>
+              <th scope="col">Resultado</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {(data ?? []).map((p) => (
+              <tr key={p.month}>
+                <th scope="row">{monthLong(p.month)}</th>
+                <td>{formatBRL(p.income)}</td>
+                <td>{formatBRL(p.expense)}</td>
+                <td>{formatBRL(p.net)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </ChartCard>
   )
 }

@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import {
   Area,
   AreaChart,
@@ -14,7 +15,10 @@ import { formatBRL } from '@/lib/money'
 import { monthLong, monthTick, moneyTick } from '@/pages/dashboard/chartFormat'
 
 export function NetWorthChart({ data, loading }: { data?: CashflowPoint[]; loading: boolean }) {
-  const rows = (data ?? []).map((p) => ({ month: p.month, balance: Number(p.balance) }))
+  const rows = useMemo(
+    () => (data ?? []).map((p) => ({ month: p.month, balance: Number(p.balance) })),
+    [data],
+  )
   const empty = rows.every((r) => r.balance === 0)
 
   return (
@@ -25,7 +29,7 @@ export function NetWorthChart({ data, loading }: { data?: CashflowPoint[]; loadi
       empty={!loading && empty}
       className="lg:col-span-2"
     >
-      <div className="h-56" aria-hidden="true">
+      <div className="min-h-56 flex-1" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={rows} margin={{ left: 4, right: 4, top: 4 }}>
             <defs>
@@ -66,23 +70,26 @@ export function NetWorthChart({ data, loading }: { data?: CashflowPoint[]; loadi
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <table className="sr-only">
-        <caption>Patrimônio no fim de cada mês</caption>
-        <thead>
-          <tr>
-            <th scope="col">Mês</th>
-            <th scope="col">Patrimônio</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(data ?? []).map((p) => (
-            <tr key={p.month}>
-              <th scope="row">{monthLong(p.month)}</th>
-              <td>{formatBRL(p.balance)}</td>
+      {/* <table> ignora o width do sr-only: o wrapper é que esconde */}
+      <div className="sr-only">
+        <table>
+          <caption>Patrimônio no fim de cada mês</caption>
+          <thead>
+            <tr>
+              <th scope="col">Mês</th>
+              <th scope="col">Patrimônio</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {(data ?? []).map((p) => (
+              <tr key={p.month}>
+                <th scope="row">{monthLong(p.month)}</th>
+                <td>{formatBRL(p.balance)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </ChartCard>
   )
 }

@@ -26,7 +26,10 @@ export function ChartCard({
   return (
     <section
       aria-label={title}
-      className={cn('flex flex-col rounded-2xl border border-border bg-card p-5', className)}
+      className={cn(
+        'relative flex min-w-0 flex-col rounded-2xl border border-border bg-card p-5',
+        className,
+      )}
     >
       <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>

@@ -50,15 +50,15 @@ function Kpi({
       role="group"
       aria-label={label}
       className={cn(
-        'flex flex-col gap-3 rounded-2xl border border-border bg-card p-5',
-        emphasis && 'bg-surface-raised',
+        'flex min-w-0 flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:p-5',
+        emphasis && 'col-span-2 bg-surface-raised lg:col-span-1',
       )}
     >
       <p className="text-sm text-muted-foreground">{label}</p>
       <p
         className={cn(
           'font-semibold tracking-tight tabular-nums',
-          emphasis ? 'text-3xl' : 'text-2xl',
+          emphasis ? 'text-3xl' : 'text-xl sm:text-2xl',
         )}
       >
         {value === null ? '—' : format(animated)}
