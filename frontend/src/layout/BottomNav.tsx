@@ -11,7 +11,7 @@ export function BottomNav() {
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
     >
       <ul className="grid grid-cols-5">
-        {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+        {NAV_ITEMS.filter((item) => item.mobile !== false).map(({ to, label, icon: Icon }) => (
           <li key={to}>
             <NavLink
               to={to}

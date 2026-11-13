@@ -16,7 +16,7 @@ Cadastro, login, logout e "quem sou eu" por **sessão do Django** (cookie `sessi
 | POST | `/register` | CSRF | 201 `UserOut` e já loga · 409 e-mail já cadastrado · 422 senha fraca |
 | POST | `/login` | CSRF | 200 `UserOut` · 401 `E-mail ou senha inválidos.` |
 | POST | `/logout` | sessão + CSRF | 204 |
-| GET | `/me` | sessão | 200 `UserOut` · 401 |
+| GET | `/me` | sessão | 200 `UserOut` · 401 `Não autenticado.` |
 
 Erros sempre seguem o formato `{"detail": "<mensagem em pt-BR>"}`.
 
@@ -35,3 +35,4 @@ Erros sempre seguem o formato `{"detail": "<mensagem em pt-BR>"}`.
 
 ## Histórico de mudanças
 - 2026-11-13: criação (Fase 1).
+- 2026-11-13: o cadastro também cria as categorias padrão (veja `financas.md`), e o 401 de rotas com sessão passou a vir em português (`Não autenticado.`, handler em `config/api.py`).

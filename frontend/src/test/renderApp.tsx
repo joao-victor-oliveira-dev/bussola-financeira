@@ -11,7 +11,8 @@ type Handler = (init: RequestInit) => { status: number; body?: unknown }
 export function renderApp(path: string, handlers: Record<string, Handler>) {
   const fetchMock = vi.fn(async (url: string, init: RequestInit = {}) => {
     const key = `${(init.method ?? 'GET').toUpperCase()} ${url}`
-    const handler = handlers[key]
+    // Casa a URL exata ou, como fallback, só o caminho (sem a query string).
+    const handler = handlers[key] ?? handlers[key.split('?')[0]]
     if (!handler)
       return new Response(JSON.stringify({ detail: `sem mock: ${key}` }), { status: 500 })
     const { status, body } = handler(init)
