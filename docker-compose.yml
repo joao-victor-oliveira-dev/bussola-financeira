@@ -24,7 +24,7 @@ services:
       CSRF_TRUSTED_ORIGINS: http://localhost:5173
     volumes:
       - ./backend:/app
-      - /app/.venv
+      - /app/venv  # esconde o venv local do container
     ports:
       - "8000:8000"
     depends_on:

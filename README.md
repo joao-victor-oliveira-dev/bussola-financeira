@@ -49,8 +49,8 @@ Requisitos: Python 3.13 e Node 24.
 # API (SQLite por padrão)
 cd backend
 cp .env.example .env
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+python -m venv venv
+source venv/bin/activate         # Windows: venv\Scripts\activate
 pip install -r requirements-dev.txt
 python manage.py migrate
 python manage.py runserver
@@ -63,7 +63,7 @@ npm run dev
 
 ### Testes e qualidade
 ```bash
-cd backend && pytest && ruff check .   # com o .venv ativo
+cd backend && pytest && ruff check .   # com o venv ativo
 cd frontend && npm test && npm run lint && npm run typecheck
 ```
 
