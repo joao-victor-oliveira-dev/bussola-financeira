@@ -37,7 +37,10 @@ Um `month` fora do formato `YYYY-MM` (ou com mês 13) responde **422**.
 - O mês fica na URL (`/?mes=2026-10`). Um valor inválido cai no mês atual (`parseMonth` em `lib/dates`).
 - Cada widget é uma query própria, carregada em paralelo, com `placeholderData` para não piscar ao trocar o mês.
 - `invalidateMoney` também invalida as queries `/api/dashboard/*`. Criar, editar ou efetivar um lançamento atualiza o painel.
-- Na lista Pendentes, o botão ✓ marca o lançamento como efetivado.
+- Na lista Pendentes, o botão ✓ marca o lançamento como efetivado. Uma trava síncrona por `ref` evita clique duplo.
+- Widget com erro mostra "Não foi possível carregar" com **Tentar de novo** (`LoadError` em `ChartCard`) e nunca se passa por "sem dados".
+- `invalidateCatalog` (categorias e tags) também invalida o painel, que mostra nomes, cores e agrupamento das categorias.
+- KPIs: a contagem anima com `Number`, mas o valor final exibido vem da string decimal da API.
 - **Cores dos gráficos:** tokens `--chart-income` e `--chart-expense`, validados com o script do dataviz contra o `--card` de cada tema.
   - Escuro: `#26a3a8` / `#e0644f`.
   - Claro: `#0e8c7b` / `#d2503f`.
@@ -55,3 +58,4 @@ Um `month` fora do formato `YYYY-MM` (ou com mês 13) responde **422**.
 
 ## Histórico de mudanças
 - 2026-11-13: criação (Fase 3).
+- 2026-11-13: revisão da Fase 3. Estados de erro com retry, invalidação pelo catálogo, clique duplo, valores exatos e mês formatado por uma fonte só.
