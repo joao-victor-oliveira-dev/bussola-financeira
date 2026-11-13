@@ -22,6 +22,7 @@ services:
       ALLOWED_HOSTS: localhost,127.0.0.1,backend
       DATABASE_URL: postgres://bussola:bussola@db:5432/bussola
       CSRF_TRUSTED_ORIGINS: http://localhost:5173
+      DEMO_ENABLED: "True"
     volumes:
       - ./backend:/app
       - /app/venv  # esconde o venv local do container

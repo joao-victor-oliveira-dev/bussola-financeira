@@ -15,6 +15,13 @@ export function currentMonth(today = new Date()): string {
   return `${today.getFullYear()}-${pad(today.getMonth() + 1)}`
 }
 
+const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/
+
+/** Mês vindo da URL: inválido ou ausente → mês atual. */
+export function parseMonth(raw: string | null, today = new Date()): string {
+  return raw && MONTH_RE.test(raw) ? raw : currentMonth(today)
+}
+
 export function monthRange(month: string): { from: string; to: string } {
   const [y, m] = month.split('-').map(Number)
   const last = new Date(y, m, 0).getDate()

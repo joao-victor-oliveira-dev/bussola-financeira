@@ -54,3 +54,20 @@ it('cadastro cria a conta e entra no app', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Criar conta' }))
   await waitFor(() => expect(router.state.location.pathname).toBe('/'))
 })
+
+it('entrar como visitante usa a demo e abre o painel', async () => {
+  let logged = false
+  const demo = { id: 99, email: 'demo@bussola.app', name: 'Visitante' }
+  const { router } = renderApp('/login', {
+    'GET /api/auth/me': () =>
+      logged ? { status: 200, body: demo } : { status: 401, body: { detail: 'x' } },
+    'POST /api/auth/demo': (init) => {
+      expect(new Headers(init.headers).get('X-CSRFToken')).toBe('abc')
+      logged = true
+      return { status: 200, body: demo }
+    },
+  })
+  await userEvent.click(await screen.findByRole('button', { name: 'Entrar como visitante' }))
+  await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+  expect(await screen.findByText('Olá, Visitante')).toBeInTheDocument()
+})

@@ -70,7 +70,10 @@ function TransactionForm({ state, onDone }: { state: TxDialogState; onDone: () =
   const create = useTransactionsCreate()
   const update = useTransactionsUpdate()
 
-  const accounts = allAccounts.filter((a) => !a.archived || a.id === tx?.account_id)
+  // Arquivadas ficam fora, exceto as já usadas pelo lançamento em edição.
+  const accounts = allAccounts.filter(
+    (a) => !a.archived || a.id === tx?.account_id || a.id === tx?.to_account_id,
+  )
   const [kind, setKind] = useState<TransactionOutKind>(tx?.kind ?? 'expense')
   const [amount, setAmount] = useState(tx ? maskBRLInput(tx.amount) : '')
   const [description, setDescription] = useState(tx?.description ?? '')

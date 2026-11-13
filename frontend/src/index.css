@@ -18,6 +18,8 @@
   --color-brass: var(--brass);
   --color-income: var(--income);
   --color-expense: var(--expense);
+  --color-chart-income: var(--chart-income);
+  --color-chart-expense: var(--chart-expense);
   --color-surface-raised: var(--surface-raised);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -88,6 +90,9 @@
   --chart-3: #4c6fc4;
   --chart-4: #13925e;
   --chart-5: #d2503f;
+  /* receita × despesa nos gráficos: validado (dataviz) contra --card claro */
+  --chart-income: #0e8c7b;
+  --chart-expense: #d2503f;
   --sidebar: #eaefed;
   --sidebar-foreground: #12201e;
   --sidebar-primary: #0e8c7b;
@@ -126,6 +131,9 @@
   --chart-3: #7c9be6;
   --chart-4: #41d095;
   --chart-5: #f27a6e;
+  /* validado contra --card escuro (#19242a): L dentro da faixa, ΔE CVD ≥ 13 */
+  --chart-income: #26a3a8;
+  --chart-expense: #e0644f;
   --sidebar: #10171a;
   --sidebar-foreground: #e4ebe8;
   --sidebar-primary: #2fb5a2;

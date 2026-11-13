@@ -5,7 +5,8 @@ import { createQueryClient } from '@/queryClient'
 import { routes } from '@/router'
 import { ThemeProvider } from '@/theme/ThemeProvider'
 
-type Handler = (init: RequestInit) => { status: number; body?: unknown }
+type Reply = { status: number; body?: unknown }
+type Handler = (init: RequestInit) => Reply | Promise<Reply>
 
 /** Mocka fetch por "MÉTODO /url" e renderiza o app inteiro numa rota. */
 export function renderApp(path: string, handlers: Record<string, Handler>) {
@@ -15,7 +16,7 @@ export function renderApp(path: string, handlers: Record<string, Handler>) {
     const handler = handlers[key] ?? handlers[key.split('?')[0]]
     if (!handler)
       return new Response(JSON.stringify({ detail: `sem mock: ${key}` }), { status: 500 })
-    const { status, body } = handler(init)
+    const { status, body } = await handler(init)
     return new Response(body === undefined ? null : JSON.stringify(body), { status })
   })
   vi.stubGlobal('fetch', fetchMock)
