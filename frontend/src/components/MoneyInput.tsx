@@ -37,7 +37,7 @@ export function MoneyInput({
         onChange={(e) => onChange(maskBRLInput(e.target.value, { allowNegative }))}
         className={cn(
           controlClass,
-          'pl-11 tabular-nums',
+          'pl-11',
           size === 'hero' && 'h-16 pl-14 text-3xl font-semibold tracking-tight',
           className,
         )}

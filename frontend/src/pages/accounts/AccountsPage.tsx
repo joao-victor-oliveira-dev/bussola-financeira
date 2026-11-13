@@ -27,7 +27,7 @@ export function AccountsPage() {
   const openEdit = (account: AccountOut) => setDialog({ open: true, account })
 
   return (
-    <div className="grid gap-8">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-8">
       <PageHeader
         title="Contas"
         description="Saldos calculados a partir dos lançamentos efetivados."

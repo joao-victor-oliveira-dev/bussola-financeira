@@ -94,7 +94,7 @@ export function TransactionFilters({
           value={filters.account}
           onChange={(e) => onChange({ account: e.target.value })}
         >
-          <option value="">Todas as contas</option>
+          <option value="">Contas</option>
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>
               {a.name}
@@ -107,7 +107,7 @@ export function TransactionFilters({
           value={filters.category}
           onChange={(e) => onChange({ category: e.target.value })}
         >
-          <option value="">Todas as categorias</option>
+          <option value="">Categorias</option>
           <optgroup label="Despesas">
             <CategoryOptions categories={categories.filter((c) => c.kind === 'expense')} />
           </optgroup>
@@ -121,7 +121,7 @@ export function TransactionFilters({
           value={filters.kind}
           onChange={(e) => onChange({ kind: e.target.value as TxFilters['kind'] })}
         >
-          <option value="">Todos os tipos</option>
+          <option value="">Tipos</option>
           {Object.entries(TX_KINDS).map(([v, label]) => (
             <option key={v} value={v}>
               {label}
@@ -134,7 +134,7 @@ export function TransactionFilters({
           value={filters.status}
           onChange={(e) => onChange({ status: e.target.value as TxFilters['status'] })}
         >
-          <option value="">Todos os status</option>
+          <option value="">Status</option>
           {Object.entries(TX_STATUS).map(([v, label]) => (
             <option key={v} value={v}>
               {label}

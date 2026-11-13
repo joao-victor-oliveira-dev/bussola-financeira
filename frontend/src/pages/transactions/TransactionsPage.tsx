@@ -100,7 +100,7 @@ export function TransactionsPage() {
   const pages = Math.max(1, Math.ceil(count / PAGE_SIZE))
 
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6 pb-16 md:pb-0">
       <PageHeader
         title="Lançamentos"
         actions={
@@ -129,7 +129,7 @@ export function TransactionsPage() {
       <div className="grid gap-5 rounded-2xl border border-border bg-card p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <MonthSwitcher month={filters.month} onChange={(month) => update({ month })} />
-          <dl className="grid w-full grid-cols-3 gap-4 text-right sm:w-auto sm:gap-8">
+          <dl className="grid w-full grid-cols-3 gap-3 text-sm sm:w-auto sm:gap-8 sm:text-right sm:text-base">
             <div data-testid="total-income">
               <dt className="text-xs text-muted-foreground">Receitas</dt>
               <dd className="font-semibold">

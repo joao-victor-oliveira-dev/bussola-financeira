@@ -39,7 +39,7 @@ export function CategoriesPage() {
   const openTag = (tag: TagOut | null) => setTagDialog({ open: true, tag })
 
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
       <PageHeader
         title="Categorias"
         description="Organize seus lançamentos por categoria e marque-os com tags."
@@ -55,10 +55,16 @@ export function CategoriesPage() {
       />
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
-        <TabsList>
-          <TabsTrigger value="expense">Despesas</TabsTrigger>
-          <TabsTrigger value="income">Receitas</TabsTrigger>
-          <TabsTrigger value="tags">Tags</TabsTrigger>
+        <TabsList className="h-10">
+          <TabsTrigger value="expense" className="px-4">
+            Despesas
+          </TabsTrigger>
+          <TabsTrigger value="income" className="px-4">
+            Receitas
+          </TabsTrigger>
+          <TabsTrigger value="tags" className="px-4">
+            Tags
+          </TabsTrigger>
         </TabsList>
 
         {(['expense', 'income'] as const).map((kind) => (
