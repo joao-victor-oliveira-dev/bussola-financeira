@@ -57,6 +57,7 @@ function AccountForm({ account, onDone }: { account: AccountOut | null; onDone: 
   const [archived, setArchived] = useState(account?.archived ?? false)
   const [errors, setErrors] = useState<{ name?: string; initial?: string }>({})
   const [confirming, setConfirming] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const mutation = account ? update : create
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -88,7 +89,7 @@ function AccountForm({ account, onDone }: { account: AccountOut | null; onDone: 
       toast.success('Conta excluída.')
       onDone()
     } catch (err) {
-      toast.error(errorMessage(err))
+      setDeleteError(errorMessage(err))
     }
   }
 
@@ -152,7 +153,7 @@ function AccountForm({ account, onDone }: { account: AccountOut | null; onDone: 
           Arquivar (some das listas, mas mantém o histórico)
         </label>
       )}
-      <FormError message={mutation.error?.detail} />
+      <FormError message={deleteError ?? mutation.error?.detail} />
       <SubmitButton loading={mutation.isPending}>
         {account ? 'Salvar alterações' : 'Criar conta'}
       </SubmitButton>
