@@ -4,6 +4,7 @@ from ninja.errors import AuthenticationError
 from apps.finance.api.accounts import router as accounts_router
 from apps.finance.api.categories import router as categories_router
 from apps.finance.api.tags import router as tags_router
+from apps.finance.api.transactions import router as transactions_router
 from apps.users.api import router as auth_router
 
 api = NinjaAPI(title="Bússola Financeira API", version="1.0.0", urls_namespace="api")
@@ -23,3 +24,4 @@ api.add_router("/auth", auth_router)
 api.add_router("/accounts", accounts_router)
 api.add_router("/categories", categories_router)
 api.add_router("/tags", tags_router)
+api.add_router("/transactions", transactions_router)
