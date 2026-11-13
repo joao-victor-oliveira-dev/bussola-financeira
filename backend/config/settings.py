@@ -9,6 +9,7 @@ env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
     CSRF_TRUSTED_ORIGINS=(list, []),
+    DEMO_ENABLED=(bool, True),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
@@ -20,6 +21,10 @@ if not SECRET_KEY:
     SECRET_KEY = "dev-insecure-change-me"
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
+
+# Login de demonstração ("Entrar como visitante")
+DEMO_ENABLED = env("DEMO_ENABLED")
+DEMO_EMAIL = env("DEMO_EMAIL", default="demo@bussola.app")
 
 INSTALLED_APPS = [
     "django.contrib.admin",

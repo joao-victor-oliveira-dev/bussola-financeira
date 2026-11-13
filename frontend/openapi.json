@@ -1377,6 +1377,29 @@
         ]
       }
     },
+    "/api/auth/demo": {
+      "post": {
+        "description": "Entra como o usuário de demonstração (gera os dados na primeira vez).",
+        "operationId": "authDemo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Demo",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/auth/login": {
       "post": {
         "operationId": "authLogin",

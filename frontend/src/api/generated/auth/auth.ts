@@ -152,7 +152,82 @@ export function useAuthCsrf<TData = Awaited<ReturnType<typeof authCsrf>>, TError
 
 
 
-export const getAuthLoginUrl = () => {
+export const getAuthDemoUrl = () => {
+
+
+
+
+  return `/api/auth/demo`
+}
+
+/**
+ * Entra como o usuário de demonstração (gera os dados na primeira vez).
+ * @summary Demo
+ */
+export const authDemo = async ( options?: Parameters<typeof customFetch>[1]): Promise<UserOut> => {
+
+  return customFetch<UserOut>(getAuthDemoUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAuthDemoMutationKey = () => ['authDemo'] as const;
+
+export const getAuthDemoMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authDemo>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authDemo>>, TError,void, TContext> => {
+
+const mutationKey = getAuthDemoMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authDemo>>, void> = () => {
+
+
+          return  authDemo(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthDemoMutationResult = NonNullable<Awaited<ReturnType<typeof authDemo>>>
+
+    export type AuthDemoMutationError = unknown
+
+
+    /**
+ * Entra como o usuário de demonstração (gera os dados na primeira vez).
+ * @summary Demo
+ */
+export const useAuthDemo = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authDemo>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authDemo>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getAuthDemoMutationOptions(options), queryClient);
+    }
+    export const getAuthLoginUrl = () => {
 
 
 

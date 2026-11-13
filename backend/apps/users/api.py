@@ -1,5 +1,6 @@
 from functools import wraps
 
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.middleware.csrf import get_token
 from ninja import Router, Status
@@ -7,6 +8,7 @@ from ninja.errors import HttpError
 from ninja.security import django_auth
 from ninja.utils import check_csrf
 
+from apps.finance.demo import get_demo_user, seed_demo
 from apps.users.managers import normalize_email
 from apps.users.schemas import DetailOut, LoginIn, RegisterIn, UserOut
 from apps.users.services import EmailTaken, WeakPassword, register_user
@@ -52,6 +54,18 @@ def login_view(request, payload: LoginIn):
     if user is None:
         raise HttpError(401, "E-mail ou senha inválidos.")
     login(request, user)
+    return user
+
+
+@router.post("/demo", operation_id="authDemo", response=UserOut)
+@require_csrf
+def demo(request):
+    """Entra como o usuário de demonstração (gera os dados na primeira vez)."""
+    if not settings.DEMO_ENABLED:
+        raise HttpError(404, "Demonstração indisponível.")
+    user = get_demo_user()
+    seed_demo(user)
+    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     return user
 
 
