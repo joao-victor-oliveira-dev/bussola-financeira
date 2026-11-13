@@ -26,13 +26,13 @@ def require_csrf(view):
     return wrapper
 
 
-@router.get("/csrf", response=DetailOut)
+@router.get("/csrf", operation_id="authCsrf", response=DetailOut)
 def csrf(request):
     get_token(request)
     return {"detail": "ok"}
 
 
-@router.post("/register", response={201: UserOut})
+@router.post("/register", operation_id="authRegister", response={201: UserOut})
 @require_csrf
 def register(request, payload: RegisterIn):
     try:
@@ -45,7 +45,7 @@ def register(request, payload: RegisterIn):
     return Status(201, user)
 
 
-@router.post("/login", response=UserOut)
+@router.post("/login", operation_id="authLogin", response=UserOut)
 @require_csrf
 def login_view(request, payload: LoginIn):
     user = authenticate(request, email=normalize_email(payload.email), password=payload.password)
@@ -55,12 +55,12 @@ def login_view(request, payload: LoginIn):
     return user
 
 
-@router.post("/logout", response={204: None}, auth=django_auth)
+@router.post("/logout", operation_id="authLogout", response={204: None}, auth=django_auth)
 def logout_view(request):
     logout(request)
     return Status(204, None)
 
 
-@router.get("/me", response=UserOut, auth=django_auth)
+@router.get("/me", operation_id="authMe", response=UserOut, auth=django_auth)
 def me(request):
     return request.auth

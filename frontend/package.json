@@ -6,12 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint src",
+    "lint": "oxlint src --ignore-pattern 'src/api/generated/**'",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
     "format": "prettier --write src",
-    "format:check": "prettier --check src"
+    "format:check": "prettier --check src",
+    "api:gen": "orval"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -43,6 +44,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "jsdom": "^31.0.1",
+    "orval": "^8.47.0",
     "oxlint": "^1.90.0",
     "prettier": "^3.10.1",
     "typescript": "~7.0.2",
