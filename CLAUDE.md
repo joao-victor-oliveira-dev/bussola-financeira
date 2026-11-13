@@ -20,3 +20,4 @@ Este arquivo é **só um mapa**. Não copie conteúdo para cá: leia o arquivo i
 - Ao alterar uma área, leia e atualize a doc dela no mesmo trabalho.
 - Escolhas técnicas: siga a recomendação e apenas informe. Pergunte só para ações externas/irreversíveis.
 - Dinheiro sempre `Decimal` (string no JSON), nunca float. Toda consulta filtrada por `request.user`.
+- Git: branches `feat/*`/`fix/*` saem de `develop`; PRs vão para `develop`. `develop → main` só quando o autor pedir. Revisão de código ao fim de cada fase.
