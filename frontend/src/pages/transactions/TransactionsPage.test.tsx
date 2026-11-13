@@ -56,8 +56,8 @@ const page = (items: unknown[], totals = { income: '0.00', expense: '0.00', net:
   totals,
 })
 
-function setup(extra = {}, items: unknown[] = []) {
-  return renderApp('/lancamentos', {
+function setup(extra = {}, items: unknown[] = [], path = '/lancamentos') {
+  return renderApp(path, {
     'GET /api/auth/me': () => ({ status: 200, body: joao }),
     'GET /api/accounts': () => ({ status: 200, body: accounts }),
     'GET /api/categories': () => ({ status: 200, body: categories }),
@@ -201,4 +201,53 @@ it('excluir pede confirmação', async () => {
   expect(del).not.toHaveBeenCalled()
   await userEvent.click(await screen.findByRole('button', { name: 'Excluir' }))
   await waitFor(() => expect(del).toHaveBeenCalled())
+})
+
+it('página além da última volta para a página 1', async () => {
+  const { fetchMock } = setup(
+    {
+      'GET /api/transactions': () => ({
+        status: 200,
+        body: { ...page([]), count: 10, page: 3 },
+      }),
+    },
+    [],
+    '/lancamentos?pagina=3',
+  )
+  await waitFor(() =>
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('page=1&'), expect.anything()),
+  )
+})
+
+it('parâmetros inválidos na URL caem no mês atual e na página 1', async () => {
+  const { fetchMock } = setup({}, [], '/lancamentos?mes=2026-13x&pagina=-1')
+  const now = monthRange(currentMonth())
+  await waitFor(() =>
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining(`date_from=${now.from}&date_to=${now.to}&page=1&`),
+      expect.anything(),
+    ),
+  )
+  expect(fetchMock).not.toHaveBeenCalledWith(expect.stringContaining('NaN'), expect.anything())
+})
+
+it('a tecla N não abre o formulário com a confirmação de exclusão aberta', async () => {
+  setup({}, [tx({ id: 2, description: 'Feira' })])
+  await userEvent.click(await screen.findByRole('button', { name: 'Ações de Feira' }))
+  await userEvent.click(await screen.findByRole('menuitem', { name: 'Excluir' }))
+  await screen.findByRole('alertdialog')
+  await userEvent.keyboard('n')
+  expect(screen.queryByRole('dialog', { name: 'Novo lançamento' })).not.toBeInTheDocument()
+})
+
+it('editar transferência com destino arquivado mantém o destino visível', async () => {
+  const archivedAccounts = accounts.map((a) => (a.id === 2 ? { ...a, archived: true } : a))
+  setup({ 'GET /api/accounts': () => ({ status: 200, body: archivedAccounts }) }, [
+    tx({ id: 5, kind: 'transfer', description: 'Guardar', to_account_id: 2 }),
+  ])
+  await userEvent.click(await screen.findByText('Guardar'))
+  const dialog = await screen.findByRole('dialog')
+  const dest = within(dialog).getByLabelText('Para a conta') as HTMLSelectElement
+  expect(dest.value).toBe('2')
+  expect(dest.selectedOptions[0]?.textContent).toBe('Reserva')
 })

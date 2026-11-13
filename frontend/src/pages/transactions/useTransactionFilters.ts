@@ -29,17 +29,29 @@ export type TxFilters = {
 
 export const PAGE_SIZE = 50
 
+const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/
+
+// Valores inválidos na URL (link velho, digitação) caem no padrão em vez de quebrar a API.
+function parseMonth(raw: string | null): string {
+  return raw && MONTH_RE.test(raw) ? raw : currentMonth()
+}
+
+function parsePage(raw: string | null): number {
+  const n = Number(raw)
+  return Number.isInteger(n) && n >= 1 ? n : 1
+}
+
 export function useTransactionFilters() {
   const [params, setParams] = useSearchParams()
 
   const filters: TxFilters = {
-    month: params.get(KEYS.month) ?? currentMonth(),
+    month: parseMonth(params.get(KEYS.month)),
     account: params.get(KEYS.account) ?? '',
     category: params.get(KEYS.category) ?? '',
     kind: (params.get(KEYS.kind) ?? '') as TxFilters['kind'],
     status: (params.get(KEYS.status) ?? '') as TxFilters['status'],
     q: params.get(KEYS.q) ?? '',
-    page: Number(params.get(KEYS.page) ?? '1') || 1,
+    page: parsePage(params.get(KEYS.page)),
   }
 
   /** Atualiza filtros; qualquer mudança que não seja de página volta para a página 1. */
