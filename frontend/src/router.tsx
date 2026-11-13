@@ -7,6 +7,7 @@ import { ComingSoonPage } from '@/pages/ComingSoonPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
+import { TransactionsPage } from '@/pages/transactions/TransactionsPage'
 
 export const routes: RouteObject[] = [
   {
@@ -23,7 +24,7 @@ export const routes: RouteObject[] = [
         element: <AppShell />,
         children: [
           { path: '/', element: <DashboardPage /> },
-          { path: '/lancamentos', element: <ComingSoonPage title="Lançamentos" /> },
+          { path: '/lancamentos', element: <TransactionsPage /> },
           { path: '/contas', element: <AccountsPage /> },
           { path: '/categorias', element: <CategoriesPage /> },
           { path: '/cartoes', element: <ComingSoonPage title="Cartões" /> },
