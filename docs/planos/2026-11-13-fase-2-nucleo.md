@@ -6,7 +6,7 @@
 
 ## Restrições globais
 - Dinheiro em `Decimal` (string no JSON). Toda query passa por `.filter(user=request.user)`.
-- Backend com TDD em pytest (`cd backend && .venv/Scripts/python -m pytest`), ruff limpo. Front com vitest, oxlint, prettier e tsc limpos.
+- Backend com TDD em pytest (`cd backend && venv/Scripts/python -m pytest`), ruff limpo. Front com vitest, oxlint, prettier e tsc limpos.
 - Após mudar a API: `python manage.py export_openapi` + `npm run api:gen` (o CI checa o diff).
 - Rotas Ninja com `operation_id` camelCase explícito (`accountsList`, `accountsCreate`…).
 
