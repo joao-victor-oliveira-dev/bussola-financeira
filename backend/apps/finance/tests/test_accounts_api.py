@@ -99,3 +99,10 @@ def test_unsafe_request_without_csrf_403(user):
     c.force_login(user)
     r = c.post("/api/accounts", "{}", content_type="application/json")
     assert r.status_code == 403
+
+
+def test_duplicate_name_ignores_case_409(api, user):
+    AccountFactory(user=user, name="Nubank")
+    assert api.post("/api/accounts", {"name": "nubank", "type": "checking"}).status_code == 409
+    other = AccountFactory(user=user, name="Itaú")
+    assert api.patch(f"/api/accounts/{other.id}", {"name": "NUBANK"}).status_code == 409

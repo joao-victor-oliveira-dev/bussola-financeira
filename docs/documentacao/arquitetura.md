@@ -45,4 +45,5 @@ Veja "Como rodar" no `README.md`.
 
 ## Histórico de mudanças
 - 2026-11-13: criação (Fase 1). Desvio da spec: settings único por env em vez de base/dev/prod.
+- 2026-11-13: fluxo de branches — trabalho em `feat/*`/`fix/*` a partir de `develop`, PRs para `develop`, `main` recebe `develop` sob demanda; CI roda em push para `main` e `develop` e em todo PR.
 - 2026-11-13: uv substituído por pip + `requirements.txt` (produção) e `requirements-dev.txt` (desenvolvimento).

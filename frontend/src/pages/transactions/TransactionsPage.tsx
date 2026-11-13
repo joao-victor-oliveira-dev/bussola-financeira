@@ -28,7 +28,8 @@ import {
 import { TransactionList, type TxActions } from '@/pages/transactions/TransactionList'
 import { PAGE_SIZE, useTransactionFilters } from '@/pages/transactions/useTransactionFilters'
 
-const TYPING = 'input, textarea, select, [contenteditable="true"], [role="dialog"]'
+const TYPING = 'input, textarea, select, [contenteditable="true"]'
+const MODAL = '[role="dialog"], [role="alertdialog"]'
 
 export function TransactionsPage() {
   const client = useQueryClient()
@@ -62,6 +63,7 @@ export function TransactionsPage() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() !== 'n' || e.metaKey || e.ctrlKey || e.altKey) return
       if (e.target instanceof Element && e.target.closest(TYPING)) return
+      if (document.querySelector(MODAL)) return
       e.preventDefault()
       setDialog({ open: true, tx: null, mode: 'create' })
     }
@@ -98,6 +100,12 @@ export function TransactionsPage() {
   const items = data?.items ?? []
   const count = data?.count ?? 0
   const pages = Math.max(1, Math.ceil(count / PAGE_SIZE))
+
+  // Página além da última (ex.: excluiu o único item da última página): volta para a última.
+  const outOfRange = data !== undefined && filters.page > pages
+  useEffect(() => {
+    if (outOfRange) update({ page: pages })
+  }, [outOfRange, pages, update])
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 pb-16 md:pb-0">

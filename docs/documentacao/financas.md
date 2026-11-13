@@ -33,7 +33,7 @@ Um id de outro usuário responde **404**. Uma referência de outro usuário dent
 - **Filtros:** `account` casa com a origem **ou** o destino. `category` inclui as subcategorias. `q` busca na descrição e nas observações, sem diferenciar maiúsculas.
 - **Totais** cobrem o filtro inteiro (não só a página) e não incluem transferências.
 - **Categorias padrão:** criadas no cadastro, na mesma transação do usuário (`create_default_categories`, idempotente).
-- **Unicidade de categoria:** o banco tem `UniqueConstraint(nulls_distinct=False)`. A API também checa no código, porque no SQLite o `NULL` do pai fica fora da unicidade.
+- **Unicidade de categoria:** duas constraints parciais no banco: `user+kind+name` para as principais (`parent` nulo) e `user+kind+parent+name` para as subcategorias. A API checa antes, sem diferenciar maiúsculas, e trata a corrida (`IntegrityError` → 409).
 
 ## Telas
 - **Contas:** saldo total, cartões com a faixa na cor da conta e o saldo (negativo em coral), modal de criar/editar (com arquivar e excluir) e seção "Arquivadas" recolhida.
@@ -62,3 +62,4 @@ Um id de outro usuário responde **404**. Uma referência de outro usuário dent
   - Decisão: `<select>` nativo estilizado em vez do Select do Base UI, por ser acessível, ter o seletor nativo no celular e ser testável.
   - Decisão: JSON em snake_case.
   - Desvio do plano: num POST/PATCH de transferência, a categoria enviada é ignorada em vez de gerar 422. Nos outros tipos, o destino é limpo.
+- 2026-11-13: revisão da Fase 2 — 409 em corrida de duplicados (tag/categoria), nome de conta único sem diferenciar maiúsculas, unicidade de categoria por duas constraints parciais (funciona no SQLite), `count` junto com os totais, categorias padrão em lote; no front: página fora do intervalo, parâmetros inválidos na URL, atalho N com modal aberto e destino arquivado na edição.

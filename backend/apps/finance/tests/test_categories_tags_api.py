@@ -127,3 +127,18 @@ def test_delete_tag_in_use_removes_link(api, user):
 def test_other_users_tag_404(api):
     other = TagFactory()
     assert api.patch(f"/api/tags/{other.id}", {"name": "x"}).status_code == 404
+
+
+def test_tag_race_on_db_constraint_is_409(api, user, monkeypatch):
+    """Duas criações simultâneas passam pela checagem; o banco barra a segunda → 409."""
+    TagFactory(user=user, name="viagem")
+    monkeypatch.setattr("apps.finance.api.tags._is_duplicate", lambda tag: False)
+    assert api.post("/api/tags", {"name": "viagem"}).status_code == 409
+
+
+def test_category_race_on_db_constraint_is_409(api, user, monkeypatch):
+    parent = CategoryFactory(user=user, name="Alimentação")
+    CategoryFactory(user=user, name="Mercado", parent=parent)
+    monkeypatch.setattr("apps.finance.api.categories._is_duplicate", lambda cat: False)
+    r = api.post("/api/categories", {"name": "Mercado", "kind": "expense", "parent_id": parent.id})
+    assert r.status_code == 409

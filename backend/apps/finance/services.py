@@ -27,6 +27,9 @@ MONEY_FIELD = DecimalField(max_digits=14, decimal_places=2)
 
 def create_default_categories(user) -> None:
     """Cria o conjunto padrão de categorias. Idempotente."""
+    if not Category.objects.filter(user=user).exists():
+        _bulk_default_categories(user)
+        return
     for kind, items in DEFAULT_CATEGORIES.items():
         for i, (name, children) in enumerate(items):
             parent, _ = Category.objects.get_or_create(
@@ -44,6 +47,29 @@ def create_default_categories(user) -> None:
                     name=child,
                     defaults={"color": parent.color},
                 )
+
+
+def _bulk_default_categories(user) -> None:
+    """Usuário novo: duas inserções em lote (principais, depois subcategorias)."""
+    roots = [
+        Category(user=user, kind=kind, name=name, color=PALETTE[i % len(PALETTE)])
+        for kind, items in DEFAULT_CATEGORIES.items()
+        for i, (name, _) in enumerate(items)
+    ]
+    Category.objects.bulk_create(roots)
+    by_key = {(c.kind, c.name): c for c in roots}
+    Category.objects.bulk_create(
+        Category(
+            user=user,
+            kind=kind,
+            parent=by_key[(kind, name)],
+            name=child,
+            color=by_key[(kind, name)].color,
+        )
+        for kind, items in DEFAULT_CATEGORIES.items()
+        for name, children in items
+        for child in children
+    )
 
 
 def _paid_sum(**filters) -> Coalesce:

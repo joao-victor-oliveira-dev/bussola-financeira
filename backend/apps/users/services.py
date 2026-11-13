@@ -23,10 +23,11 @@ def register_user(name: str, email: str, password: str) -> User:
         validate_password(password, User(email=email, name=name))
     except ValidationError as e:
         raise WeakPassword(" ".join(e.messages)) from e
-    try:
-        with transaction.atomic():
-            user = User.objects.create_user(email=email, password=password, name=name.strip())
-            create_default_categories(user)
-            return user
-    except IntegrityError as e:  # corrida entre o exists() e o insert
-        raise EmailTaken from e
+    with transaction.atomic():
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(email=email, password=password, name=name.strip())
+        except IntegrityError as e:  # corrida entre o exists() e o insert
+            raise EmailTaken from e
+        create_default_categories(user)
+        return user

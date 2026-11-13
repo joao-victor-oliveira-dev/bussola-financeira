@@ -1,3 +1,4 @@
+from django.db import IntegrityError, transaction
 from ninja import Router, Status
 from ninja.errors import HttpError
 from ninja.security import django_auth
@@ -9,10 +10,21 @@ from apps.finance.schemas import TagIn, TagOut, TagPatch
 router = Router(tags=["tags"], auth=django_auth)
 
 
+DUPLICATE = "Já existe uma tag com esse nome."
+
+
+def _is_duplicate(tag: Tag) -> bool:
+    return Tag.objects.filter(user=tag.user, name__iexact=tag.name).exclude(pk=tag.pk).exists()
+
+
 def _save(tag: Tag) -> None:
-    if Tag.objects.filter(user=tag.user, name__iexact=tag.name).exclude(pk=tag.pk).exists():
-        raise HttpError(409, "Já existe uma tag com esse nome.")
-    tag.save()
+    if _is_duplicate(tag):
+        raise HttpError(409, DUPLICATE)
+    try:  # corrida entre a checagem e o insert: o banco decide
+        with transaction.atomic():
+            tag.save()
+    except IntegrityError:
+        raise HttpError(409, DUPLICATE) from None
 
 
 @router.get("", operation_id="tagsList", response=list[TagOut])
