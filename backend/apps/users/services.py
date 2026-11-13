@@ -2,6 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 
+from apps.finance.services import create_default_categories
 from apps.users.managers import normalize_email
 from apps.users.models import User
 
@@ -24,6 +25,8 @@ def register_user(name: str, email: str, password: str) -> User:
         raise WeakPassword(" ".join(e.messages)) from e
     try:
         with transaction.atomic():
-            return User.objects.create_user(email=email, password=password, name=name.strip())
+            user = User.objects.create_user(email=email, password=password, name=name.strip())
+            create_default_categories(user)
+            return user
     except IntegrityError as e:  # corrida entre o exists() e o insert
         raise EmailTaken from e
