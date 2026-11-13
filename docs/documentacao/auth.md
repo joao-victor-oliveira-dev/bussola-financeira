@@ -17,6 +17,7 @@ Cadastro, login, logout e "quem sou eu" por **sessão do Django** (cookie `sessi
 | POST | `/login` | CSRF | 200 `UserOut` · 401 `E-mail ou senha inválidos.` |
 | POST | `/logout` | sessão + CSRF | 204 |
 | GET | `/me` | sessão | 200 `UserOut` · 401 `Não autenticado.` |
+| POST | `/demo` | CSRF | 200 `UserOut` e loga como visitante · 404 se `DEMO_ENABLED=False` |
 
 Erros sempre seguem o formato `{"detail": "<mensagem em pt-BR>"}`.
 
@@ -30,9 +31,18 @@ Erros sempre seguem o formato `{"detail": "<mensagem em pt-BR>"}`.
 - A senha passa pelos `AUTH_PASSWORD_VALIDATORS` do Django; as mensagens vêm unidas em `detail`.
 - Rotas sem autenticação (`register`, `login`) checam CSRF via `require_csrf`. As autenticadas são checadas pelo `django_auth` do Ninja.
 
+## Usuário de demonstração
+- O botão **Entrar como visitante**, no login, chama `POST /api/auth/demo`. Ele entra como `DEMO_EMAIL` (padrão `demo@bussola.app`, nome "Visitante").
+- Esse usuário não tem senha utilizável (`set_unusable_password`), então só entra por esse endpoint.
+- Na primeira vez, `seed_demo` gera 12 meses de dados determinísticos (`random.Random(42)`). Chamadas seguintes não duplicam nada.
+- Reset manual: `python manage.py seed_demo --reset`. O reset diário automático entra com o Celery na Fase 4.
+- Para desligar em produção, defina `DEMO_ENABLED=False`. O endpoint passa a responder 404.
+- Código: `apps/finance/demo.py` (`seed_demo`, `get_demo_user`) e `apps/finance/management/commands/seed_demo.py`.
+
 ## Como testar
 `cd backend && pytest apps/users`
 
 ## Histórico de mudanças
 - 2026-11-13: criação (Fase 1).
 - 2026-11-13: o cadastro também cria as categorias padrão (veja `financas.md`), e o 401 de rotas com sessão passou a vir em português (`Não autenticado.`, handler em `config/api.py`).
+- 2026-11-13: login de demonstração (`POST /auth/demo`, comando `seed_demo`), na Fase 3.

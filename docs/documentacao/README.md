@@ -6,10 +6,10 @@ Cada página é criada quando a área é construída e atualizada a cada mudanç
 | Área | Documento | Status |
 |---|---|---|
 | Arquitetura e infraestrutura (monorepo, Docker, CI, deploy) | [`arquitetura.md`](arquitetura.md) | ativo (Fase 1) |
-| Autenticação e usuário demo | [`auth.md`](auth.md) | ativo (Fase 1); demo na Fase 3 |
+| Autenticação e usuário demo | [`auth.md`](auth.md) | ativo (Fases 1 e 3) |
 | Frontend (estrutura, tema, animações, cliente da API) | [`frontend.md`](frontend.md) | ativo (Fase 1) |
 | Contas, categorias, tags e lançamentos | [`financas.md`](financas.md) | ativo (Fase 2) |
-| Dashboard e agregações | `dashboard.md` | planejado (Fase 3) |
+| Dashboard e agregações | [`dashboard.md`](dashboard.md) | ativo (Fase 3) |
 | Cartões, faturas e parcelamentos | `cartoes.md` | planejado (Fase 4) |
 | Recorrências e tarefas Celery | `recorrencias.md` | planejado (Fase 4) |
 | Orçamento | `orcamento.md` | planejado (Fase 5) |
