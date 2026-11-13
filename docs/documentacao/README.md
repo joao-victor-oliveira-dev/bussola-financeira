@@ -5,7 +5,7 @@ Cada página é criada quando a área é construída e atualizada a cada mudanç
 
 | Área | Documento | Status |
 |---|---|---|
-| Arquitetura e infraestrutura (monorepo, Docker, CI, deploy) | `arquitetura.md` | planejado (Fase 1) |
+| Arquitetura e infraestrutura (monorepo, Docker, CI, deploy) | [`arquitetura.md`](arquitetura.md) | ativo (Fase 1) |
 | Autenticação e usuário demo | [`auth.md`](auth.md) | ativo (Fase 1); demo na Fase 3 |
 | Frontend (estrutura, tema, animações, cliente da API) | [`frontend.md`](frontend.md) | ativo (Fase 1) |
 | Contas, categorias, tags e lançamentos | `financas.md` | planejado (Fase 2) |

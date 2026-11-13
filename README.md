@@ -2,7 +2,7 @@
 
 Controle financeiro pessoal com dashboards: contas, cartões de crédito, parcelamentos, recorrências, orçamento mensal e importação de extratos — com uma interface moderna, animada e responsiva (instalável como PWA).
 
-> Projeto de portfólio fullstack **Python + React**. Status: **em construção** (Fase 1 — Fundação).
+> Projeto de portfólio fullstack **Python + React**. Status: **em construção** — Fase 1 (fundação) concluída.
 
 ## ✨ Funcionalidades
 
@@ -20,7 +20,7 @@ Controle financeiro pessoal com dashboards: contas, cartões de crédito, parcel
 |---|---|
 | Backend | Python, Django 5, Django Ninja (OpenAPI), PostgreSQL, Celery + Redis |
 | Frontend | React, TypeScript, Vite, TanStack Query, Tailwind CSS, shadcn/ui, Motion, Recharts |
-| Qualidade | pytest, factory_boy, Vitest, Testing Library, Ruff, ESLint, GitHub Actions |
+| Qualidade | pytest, factory_boy, Vitest, Testing Library, Ruff, oxlint, Prettier, GitHub Actions |
 | Infra | Docker Compose, Render (API), Vercel (front) |
 
 ## 🏗️ Arquitetura
@@ -36,7 +36,34 @@ Autenticação por sessão (cookie httpOnly + CSRF), servida na mesma origem via
 
 ## 🚀 Como rodar localmente
 
-> Disponível ao fim da Fase 1. Previsto: `docker compose up` sobe banco, Redis, API, worker e front.
+### Com Docker
+```bash
+docker compose up --build
+```
+Front em http://localhost:5173 · API em http://localhost:8000/api/docs
+
+### Sem Docker
+Requisitos: Python 3.13, [uv](https://docs.astral.sh/uv/), Node 24.
+
+```bash
+# API (SQLite por padrão)
+cd backend
+cp .env.example .env
+uv sync
+uv run python manage.py migrate
+uv run python manage.py runserver
+
+# Front (outro terminal)
+cd frontend
+npm install
+npm run dev
+```
+
+### Testes e qualidade
+```bash
+cd backend && uv run pytest && uv run ruff check .
+cd frontend && npm test && npm run lint && npm run typecheck
+```
 
 ## 📚 Documentação
 
@@ -46,7 +73,7 @@ Autenticação por sessão (cookie httpOnly + CSRF), servida na mesma origem via
 
 ## 🗺️ Roadmap
 
-- [ ] Fase 1 — Fundação (monorepo, Docker, CI, auth, esqueleto do front)
+- [x] Fase 1 — Fundação (monorepo, Docker, CI, auth, esqueleto do front)
 - [ ] Fase 2 — Contas, categorias e lançamentos
 - [ ] Fase 3 — Dashboard + usuário demo
 - [ ] Fase 4 — Cartões, parcelamentos e recorrências
