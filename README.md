@@ -43,15 +43,17 @@ docker compose up --build
 Front em http://localhost:5173 · API em http://localhost:8000/api/docs
 
 ### Sem Docker
-Requisitos: Python 3.13, [uv](https://docs.astral.sh/uv/), Node 24.
+Requisitos: Python 3.13 e Node 24.
 
 ```bash
 # API (SQLite por padrão)
 cd backend
 cp .env.example .env
-uv sync
-uv run python manage.py migrate
-uv run python manage.py runserver
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements-dev.txt
+python manage.py migrate
+python manage.py runserver
 
 # Front (outro terminal)
 cd frontend
@@ -61,7 +63,7 @@ npm run dev
 
 ### Testes e qualidade
 ```bash
-cd backend && uv run pytest && uv run ruff check .
+cd backend && pytest && ruff check .   # com o .venv ativo
 cd frontend && npm test && npm run lint && npm run typecheck
 ```
 

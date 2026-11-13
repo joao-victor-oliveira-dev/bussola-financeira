@@ -19,7 +19,7 @@ SPA React que consome a API Django por sessão (cookie) na mesma origem. Fase 1:
 | `theme/` | `ThemeProvider`/`useTheme`, `ThemeToggle` |
 
 ## Cliente da API (gerado)
-1. O backend exporta o schema: `cd backend && uv run python manage.py export_openapi` (grava `frontend/openapi.json`).
+1. O backend exporta o schema: `cd backend && python manage.py export_openapi` (grava `frontend/openapi.json`).
 2. O front gera hooks tipados: `cd frontend && npm run api:gen`.
 3. Use `useAuthMe`, `useAuthLogin` etc. Os nomes vêm do `operation_id` de cada rota no Ninja; **sempre defina `operation_id` em camelCase** ao criar rotas novas.
 4. O CI falha se `openapi.json`/`generated/` estiverem desatualizados.

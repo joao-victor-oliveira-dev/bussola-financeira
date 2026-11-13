@@ -31,7 +31,7 @@ Erros sempre seguem o formato `{"detail": "<mensagem em pt-BR>"}`.
 - Rotas sem autenticação (`register`, `login`) checam CSRF via `require_csrf`. As autenticadas são checadas pelo `django_auth` do Ninja.
 
 ## Como testar
-`cd backend && uv run pytest apps/users`
+`cd backend && pytest apps/users`
 
 ## Histórico de mudanças
 - 2026-11-13: criação (Fase 1).
