@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint src --ignore-pattern 'src/api/generated/**' --ignore-pattern 'src/components/ui/**'",
+    "lint": "oxlint src",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
