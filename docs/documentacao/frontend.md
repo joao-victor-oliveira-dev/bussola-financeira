@@ -1,7 +1,7 @@
 # Frontend
 
 ## O que faz
-SPA React que consome a API Django por sessão (cookie) na mesma origem. Fase 1: login, cadastro, rota protegida, layout do app (sidebar/bottom nav), tema claro/escuro e painel inicial vazio.
+SPA React que consome a API Django por sessão (cookie) na mesma origem. Fase 1: login, cadastro, rota protegida, layout do app (sidebar/bottom nav), tema claro/escuro e painel inicial vazio. Fase 2: telas de Contas, Categorias/Tags e Lançamentos (detalhes em [`financas.md`](financas.md)).
 
 ## Onde está o código (`frontend/src`)
 | Pasta/arquivo | Papel |
@@ -14,8 +14,10 @@ SPA React que consome a API Django por sessão (cookie) na mesma origem. Fase 1:
 | `api/http.ts` | `customFetch` (sessão + `X-CSRFToken`, `ApiError`), `ensureCsrf()` |
 | `api/generated/` | **gerado** pelo orval, não editar |
 | `layout/` | `AppShell`, `Sidebar` (recolhível), `BottomNav` (mobile), `Topbar`, `nav.ts` |
-| `pages/` | Páginas + `AuthLayout` + schemas zod |
-| `components/` | `Logo`/`NeedleMark`, `CompassRose`, `FormField`, `FormError`, `SubmitButton`, `ui/` (shadcn) |
+| `pages/` | Páginas + `AuthLayout` + schemas zod; `accounts/`, `categories/`, `transactions/` (Fase 2) |
+| `lib/` | `money` (BRL), `dates` (meses/dias), `palette` (8 cores), `utils` (`cn`) |
+| `finance/` | `cache` (invalidação + `errorMessage`), `labels`, `CategoryOptions` |
+| `components/` | `Logo`/`NeedleMark`, `CompassRose`, `FormField`, `FormError`, `SubmitButton`, `forms` (`Field`, `NativeSelect`, `controlClass`), `MoneyInput`, `Money`, `ColorPicker`, `AppDialog`, `ConfirmDialog`, `PageHeader`, `ui/` (shadcn) |
 | `theme/` | `ThemeProvider`/`useTheme`, `ThemeToggle` |
 
 ## Cliente da API (gerado)
@@ -37,7 +39,12 @@ SPA React que consome a API Django por sessão (cookie) na mesma origem. Fase 1:
 - Movimento: um momento orquestrado por tela (a agulha no login) + respostas a ações (troca de página, toggle). Sempre use `useReducedMotion()`; o CSS global também zera animações com `prefers-reduced-motion`.
 
 ## Como testar
-`cd frontend && npm test` (Vitest + Testing Library). `src/test/renderApp.tsx` renderiza o app inteiro numa rota com `fetch` mockado por `"MÉTODO /url"`.
+`cd frontend && npm test` (Vitest + Testing Library). `src/test/renderApp.tsx` renderiza o app inteiro numa rota com `fetch` mockado por `"MÉTODO /url"` (se não houver a URL exata, casa só o caminho, sem a query string).
+
+**Windows:** rode o vitest pelo PowerShell com o caminho em `c:\` minúsculo. Pelo Git Bash o caminho vira `C:/` e o jest-dom quebra ("Invalid Chai property"). O CI (Linux) não é afetado.
+
+**Componentes shadcn:** ao adicionar um novo, troque `from 'cn'` por `from '@/lib/utils'` e não sobrescreva o `button.tsx`. O lint ignora `src/components/ui/` (via `.oxlintrc.json`).
 
 ## Histórico de mudanças
 - 2026-11-13: criação (Fase 1).
+- 2026-11-13: Fase 2. Páginas de finanças, componentes de formulário, utilitários de dinheiro e datas, filtros na URL e atalho N.
