@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
@@ -17,7 +18,8 @@ class WeakPassword(Exception):
 
 def register_user(name: str, email: str, password: str) -> User:
     email = normalize_email(email)
-    if User.objects.filter(email=email).exists():
+    # O e-mail da demo é reservado: quem o cadastrasse receberia todos os visitantes.
+    if email == normalize_email(settings.DEMO_EMAIL) or User.objects.filter(email=email).exists():
         raise EmailTaken
     try:
         validate_password(password, User(email=email, name=name))

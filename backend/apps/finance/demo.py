@@ -8,12 +8,13 @@ from decimal import Decimal
 from django.conf import settings
 from django.db import transaction
 
+from apps.finance.dashboard import shift_month
 from apps.finance.models import Account, Category, Tag, Transaction, TxStatus
 from apps.finance.services import create_default_categories
 from apps.users.models import User
 
 ACCOUNTS = [
-    ("Nubank", "checking", "3200.00", "#b88cf2"),
+    ("Nubank", "checking", "4800.00", "#b88cf2"),
     ("Reserva", "savings", "15000.00", "#2fb5a2"),
     ("Carteira", "wallet", "150.00", "#cda35e"),
     ("Investimentos", "investment", "25000.00", "#6c9ef8"),
@@ -38,9 +39,9 @@ VARIABLE_EXPENSES = [
         "Restaurantes",
         (3, 7),
         (35, 180),
-        ["Nubank", "Carteira"],
+        ["Nubank", "Nubank", "Carteira"],
     ),
-    (["Uber", "Combustível", "Metrô"], "Transporte", (5, 9), (12, 220), ["Nubank", "Carteira"]),
+    (["Uber", "Combustível", "Metrô"], "Transporte", (5, 9), (12, 220), ["Nubank"]),
     (["Farmácia"], "Saúde", (0, 2), (25, 160), ["Nubank"]),
     (["Cinema", "Show", "Passeio"], "Lazer", (1, 3), (40, 260), ["Nubank"]),
     (["Roupas", "Eletrônicos", "Casa"], "Compras", (0, 2), (80, 650), ["Nubank"]),
@@ -55,8 +56,9 @@ TRIP = [  # mês de viagem (4 meses atrás), com a tag "viagem"
 
 
 def _months(today: datetime.date, count: int = 12) -> list[tuple[int, int]]:
-    index = today.year * 12 + today.month - 1
-    return [(i // 12, i % 12 + 1) for i in range(index - count + 1, index + 1)]
+    current = f"{today:%Y-%m}"
+    keys = [shift_month(current, -i) for i in range(count - 1, -1, -1)]
+    return [(int(k[:4]), int(k[5:])) for k in keys]
 
 
 def _day(year: int, month: int, day: int) -> datetime.date:
@@ -65,16 +67,19 @@ def _day(year: int, month: int, day: int) -> datetime.date:
 
 @transaction.atomic
 def seed_demo(user, today: datetime.date | None = None, reset: bool = False) -> None:
-    """Gera os dados da demo para `user`. Sem `reset`, não faz nada se já houver contas."""
+    """Gera os dados da demo para `user`. Sem `reset`, não faz nada se já houver contas.
+
+    Sempre que gera, parte do zero: um visitante pode ter apagado as contas mas deixado
+    tags e categorias renomeadas, e o seed não pode depender desse estado.
+    """
     today = today or datetime.date.today()
-    if reset:
-        Transaction.objects.filter(user=user).delete()
-        Account.objects.filter(user=user).delete()
-        Tag.objects.filter(user=user).delete()
-        Category.objects.filter(user=user, parent__isnull=False).delete()
-        Category.objects.filter(user=user).delete()
-    elif Account.objects.filter(user=user).exists():
+    if not reset and Account.objects.filter(user=user).exists():
         return
+    Transaction.objects.filter(user=user).delete()
+    Account.objects.filter(user=user).delete()
+    Tag.objects.filter(user=user).delete()
+    Category.objects.filter(user=user, parent__isnull=False).delete()
+    Category.objects.filter(user=user).delete()
 
     create_default_categories(user)
     rng = random.Random(42)
@@ -133,7 +138,7 @@ def seed_demo(user, today: datetime.date | None = None, reset: bool = False) -> 
             to_account="Reserva")  # fmt: skip
         add("transfer", _day(y, m, 7), "Aporte mensal", "500.00", "Nubank",
             to_account="Investimentos")  # fmt: skip
-        add("transfer", _day(y, m, 12), "Saque", "200.00", "Nubank", to_account="Carteira")
+        add("transfer", _day(y, m, 12), "Saque", "250.00", "Nubank", to_account="Carteira")
 
         if i == len(months) - 5:
             for desc, cat, amount in TRIP:
@@ -144,6 +149,10 @@ def seed_demo(user, today: datetime.date | None = None, reset: bool = False) -> 
     trip_tag.transactions.add(*tagged)
 
 
+class DemoUnavailable(Exception):
+    """O e-mail da demo pertence a uma conta real (com senha): nunca entrar nela."""
+
+
 def get_demo_user() -> User:
     """Usuário da demo: sem senha utilizável, só entra por POST /auth/demo."""
     user, created = User.objects.get_or_create(
@@ -152,4 +161,6 @@ def get_demo_user() -> User:
     if created:
         user.set_unusable_password()
         user.save(update_fields=["password"])
+    elif user.has_usable_password():
+        raise DemoUnavailable
     return user

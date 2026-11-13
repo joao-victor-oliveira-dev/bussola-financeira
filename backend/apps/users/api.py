@@ -2,13 +2,14 @@ from functools import wraps
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.db import IntegrityError
 from django.middleware.csrf import get_token
 from ninja import Router, Status
 from ninja.errors import HttpError
 from ninja.security import django_auth
 from ninja.utils import check_csrf
 
-from apps.finance.demo import get_demo_user, seed_demo
+from apps.finance.demo import DemoUnavailable, get_demo_user, seed_demo
 from apps.users.managers import normalize_email
 from apps.users.schemas import DetailOut, LoginIn, RegisterIn, UserOut
 from apps.users.services import EmailTaken, WeakPassword, register_user
@@ -63,8 +64,14 @@ def demo(request):
     """Entra como o usuário de demonstração (gera os dados na primeira vez)."""
     if not settings.DEMO_ENABLED:
         raise HttpError(404, "Demonstração indisponível.")
-    user = get_demo_user()
-    seed_demo(user)
+    try:
+        user = get_demo_user()
+    except DemoUnavailable:
+        raise HttpError(404, "Demonstração indisponível.") from None
+    try:
+        seed_demo(user)
+    except IntegrityError:
+        pass  # outra requisição gerou os dados ao mesmo tempo; eles já existem
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     return user
 

@@ -110,3 +110,68 @@ def test_demo_disabled_404(settings):
     c, token = _csrf_client()
     r = c.post("/api/auth/demo", "{}", content_type="application/json", HTTP_X_CSRFTOKEN=token)
     assert r.status_code == 404
+
+
+def test_demo_email_cannot_be_registered(settings):
+    from apps.users.services import EmailTaken, register_user
+
+    settings.DEMO_EMAIL = "demo@bussola.app"
+    with pytest.raises(EmailTaken):
+        register_user("Intruso", "Demo@Bussola.app", "uma-senha-boa-99")
+
+
+def test_demo_refuses_real_account_with_demo_email(settings):
+    settings.DEMO_ENABLED = True
+    settings.DEMO_EMAIL = "demo@bussola.app"
+    UserFactory(email="demo@bussola.app")  # conta real, com senha
+    c, token = _csrf_client()
+    r = c.post("/api/auth/demo", "{}", content_type="application/json", HTTP_X_CSRFTOKEN=token)
+    assert r.status_code == 404
+    assert c.get("/api/auth/me").status_code == 401
+
+
+def test_demo_recovers_after_visitor_wipes_accounts(settings):
+    settings.DEMO_ENABLED = True
+    settings.DEMO_EMAIL = "demo@bussola.app"
+    c, token = _csrf_client()
+    c.post("/api/auth/demo", "{}", content_type="application/json", HTTP_X_CSRFTOKEN=token)
+    demo = User.objects.get(email="demo@bussola.app")
+    expected = snapshot(demo)[0]
+    # visitante apaga tudo, mas a tag fica e uma categoria padrão some/renomeia
+    Transaction.objects.filter(user=demo).delete()
+    Account.objects.filter(user=demo).delete()
+    Category.objects.filter(user=demo, name="Mercado").update(name="Supermercado")
+    c2, token2 = _csrf_client()
+    r = c2.post("/api/auth/demo", "{}", content_type="application/json", HTTP_X_CSRFTOKEN=token2)
+    assert r.status_code == 200
+    assert snapshot(demo)[0] == expected
+
+
+def test_demo_login_survives_concurrent_seed(settings, monkeypatch):
+    from django.db import IntegrityError
+
+    settings.DEMO_ENABLED = True
+
+    def concurrent(user, **kw):
+        raise IntegrityError("outra requisição criou os dados primeiro")
+
+    monkeypatch.setattr("apps.users.api.seed_demo", concurrent)
+    c, token = _csrf_client()
+    r = c.post("/api/auth/demo", "{}", content_type="application/json", HTTP_X_CSRFTOKEN=token)
+    assert r.status_code == 200
+
+
+def test_demo_disabled_by_default():
+    """Sem a variável no ambiente, o login de visitante fica desligado (padrão seguro)."""
+    from config import settings as project_settings
+
+    assert project_settings.env.scheme["DEMO_ENABLED"] == (bool, False)
+
+
+def test_demo_accounts_end_non_negative():
+    from apps.finance.services import accounts_with_balance
+
+    user = UserFactory()
+    seed_demo(user, today=TODAY)
+    negatives = [(a.name, a.balance) for a in accounts_with_balance(user) if a.balance < 0]
+    assert negatives == []

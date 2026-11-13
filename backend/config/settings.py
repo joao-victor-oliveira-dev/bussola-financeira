@@ -9,7 +9,7 @@ env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
     CSRF_TRUSTED_ORIGINS=(list, []),
-    DEMO_ENABLED=(bool, True),
+    DEMO_ENABLED=(bool, False),  # ligue explicitamente (.env); padrão seguro
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
