@@ -36,3 +36,16 @@ export function maskBRLInput(raw: string, { allowNegative = false }: SignOpts = 
   const intPart = groupThousands(padded.slice(0, -2))
   return `${negative ? '-' : ''}${intPart},${padded.slice(-2)}`
 }
+
+function toCents(value: string): number {
+  const [int, dec = ''] = value.replace('-', '').split('.')
+  const cents = Number(int) * 100 + Number(dec.padEnd(2, '0').slice(0, 2))
+  return value.trim().startsWith('-') ? -cents : cents
+}
+
+/** Soma valores decimais em centavos inteiros (sem erro de float). */
+export function sumMoney(values: string[]): string {
+  const total = values.reduce((acc, v) => acc + toCents(v), 0)
+  const abs = Math.abs(total)
+  return `${total < 0 ? '-' : ''}${Math.floor(abs / 100)}.${String(abs % 100).padStart(2, '0')}`
+}

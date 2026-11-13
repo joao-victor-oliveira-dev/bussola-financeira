@@ -1,4 +1,4 @@
-import { formatBRL, maskBRLInput, parseBRL } from '@/lib/money'
+import { formatBRL, maskBRLInput, parseBRL, sumMoney } from '@/lib/money'
 
 const nbsp = (s: string) => s.replace(/ /g, ' ')
 
@@ -58,5 +58,14 @@ describe('maskBRLInput', () => {
 
   it('converte valor da API para exibição', () => {
     expect(maskBRLInput('42.90')).toBe('42,90')
+  })
+})
+
+describe('sumMoney', () => {
+  it('soma strings decimais sem erro de ponto flutuante', () => {
+    expect(sumMoney(['0.10', '0.20'])).toBe('0.30')
+    expect(sumMoney(['1234.50', '-34.50'])).toBe('1200.00')
+    expect(sumMoney(['-5', '2.5'])).toBe('-2.50')
+    expect(sumMoney([])).toBe('0.00')
   })
 })
