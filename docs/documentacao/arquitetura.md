@@ -28,7 +28,7 @@ Copie `backend/.env.example` para `backend/.env` em dev (o `.env` não é versio
 - Camadas: `api.py` só valida/serializa; regra em `services.py`; consultas sempre filtradas por `request.user`.
 - Dinheiro: `DecimalField`, string no JSON, nunca float.
 - Toda rota Ninja tem `operation_id` em camelCase (vira nome de hook no front).
-- Ferramentas: `uv` (Python), `ruff` (lint/format), `pytest`; `npm`, `oxlint`, `prettier`, `vitest`.
+- Ferramentas: `pip` + `requirements.txt`/`requirements-dev.txt` (Python), `ruff` (lint/format), `pytest`; `npm`, `oxlint`, `prettier`, `vitest`.
 - Line endings: `.gitattributes` força LF.
 
 ## CI (GitHub Actions)
@@ -45,3 +45,4 @@ Veja "Como rodar" no `README.md`.
 
 ## Histórico de mudanças
 - 2026-11-13: criação (Fase 1). Desvio da spec: settings único por env em vez de base/dev/prod.
+- 2026-11-13: uv substituído por pip + `requirements.txt` (produção) e `requirements-dev.txt` (desenvolvimento).
