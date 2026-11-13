@@ -1,3 +1,4 @@
+from django.db import IntegrityError, transaction
 from ninja import Router, Status
 from ninja.errors import HttpError
 from ninja.security import django_auth
@@ -27,14 +28,28 @@ def _validate_parent(cat: Category, parent_id: int | None) -> None:
     cat.parent = parent
 
 
+DUPLICATE = "Já existe uma categoria com esse nome aqui."
+
+
+def _is_duplicate(cat: Category) -> bool:
+    # Checagem amigável (ignora maiúsculas); o banco garante a unicidade exata.
+    return (
+        Category.objects.filter(
+            user=cat.user, kind=cat.kind, parent=cat.parent, name__iexact=cat.name
+        )
+        .exclude(pk=cat.pk)
+        .exists()
+    )
+
+
 def _save(cat: Category) -> None:
-    # Checagem explícita: no SQLite o NULL de `parent` não entra na unicidade.
-    dup = Category.objects.filter(
-        user=cat.user, kind=cat.kind, parent=cat.parent, name__iexact=cat.name
-    ).exclude(pk=cat.pk)
-    if dup.exists():
-        raise HttpError(409, "Já existe uma categoria com esse nome aqui.")
-    cat.save()
+    if _is_duplicate(cat):
+        raise HttpError(409, DUPLICATE)
+    try:  # corrida entre a checagem e o insert: o banco decide
+        with transaction.atomic():
+            cat.save()
+    except IntegrityError:
+        raise HttpError(409, DUPLICATE) from None
 
 
 @router.get("", operation_id="categoriesList", response=list[CategoryOut])

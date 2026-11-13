@@ -67,10 +67,16 @@ class Category(Owned):
         verbose_name = "categoria"
         ordering = ["name"]
         constraints = [
+            # Duas constraints parciais (em vez de nulls_distinct, que o SQLite não suporta).
             models.UniqueConstraint(
                 fields=["user", "kind", "parent", "name"],
-                name="category_unique_name",
-                nulls_distinct=False,
+                condition=Q(parent__isnull=False),
+                name="category_unique_child_name",
+            ),
+            models.UniqueConstraint(
+                fields=["user", "kind", "name"],
+                condition=Q(parent__isnull=True),
+                name="category_unique_root_name",
             ),
         ]
 

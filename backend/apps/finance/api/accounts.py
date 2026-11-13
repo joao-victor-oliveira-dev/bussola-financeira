@@ -18,6 +18,9 @@ def _with_balance(user, pk: int) -> Account:
 
 
 def _save(acc: Account) -> None:
+    dup = Account.objects.filter(user=acc.user, name__iexact=acc.name).exclude(pk=acc.pk)
+    if dup.exists():
+        raise HttpError(409, DUPLICATE)
     try:
         with transaction.atomic():
             acc.save()

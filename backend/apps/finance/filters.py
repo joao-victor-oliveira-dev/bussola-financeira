@@ -1,7 +1,7 @@
 import datetime
 from decimal import Decimal
 
-from django.db.models import Q, QuerySet, Sum
+from django.db.models import Count, Q, QuerySet, Sum
 from ninja import Schema
 from pydantic import Field
 
@@ -44,12 +44,13 @@ def apply_filters(qs: QuerySet, f: TransactionFilters) -> QuerySet:
     return qs
 
 
-def totals(qs: QuerySet) -> dict[str, Decimal]:
-    """Receitas e despesas do conjunto filtrado inteiro (transferências não entram)."""
+def totals(qs: QuerySet) -> tuple[int, dict[str, Decimal]]:
+    """Contagem + receitas e despesas do filtro inteiro, numa query (transferências fora)."""
     agg = qs.order_by().aggregate(
+        n=Count("id"),
         income=Sum("amount", filter=Q(kind="income")),
         expense=Sum("amount", filter=Q(kind="expense")),
     )
     income = agg["income"] or ZERO
     expense = agg["expense"] or ZERO
-    return {"income": income, "expense": expense, "net": income - expense}
+    return agg["n"], {"income": income, "expense": expense, "net": income - expense}

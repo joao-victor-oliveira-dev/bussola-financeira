@@ -3,7 +3,7 @@ from ninja import Query, Router, Status
 from ninja.errors import HttpError
 from ninja.security import django_auth
 
-from apps.finance.api.common import get_owned
+from apps.finance.api.common import NOT_FOUND, get_owned
 from apps.finance.filters import TransactionFilters, apply_filters, totals
 from apps.finance.models import Transaction
 from apps.finance.schemas import (
@@ -38,8 +38,10 @@ def _save(tx: Transaction, fields: dict) -> Transaction:
 
 
 def _owned(user, pk: int) -> Transaction:
-    get_owned(Transaction, user, pk)
-    return Transaction.objects.prefetch_related("tags").get(pk=pk)
+    tx = Transaction.objects.filter(user=user, pk=pk).prefetch_related("tags").first()
+    if tx is None:
+        raise HttpError(404, NOT_FOUND)
+    return tx
 
 
 @router.get("", operation_id="transactionsList", response=TransactionPage)
@@ -47,12 +49,13 @@ def list_transactions(request, filters: Query[TransactionFilters]):
     qs = apply_filters(Transaction.objects.filter(user=request.auth), filters)
     start = (filters.page - 1) * filters.page_size
     items = qs.prefetch_related("tags")[start : start + filters.page_size]
+    count, sums = totals(qs)
     return {
         "items": list(items),
-        "count": qs.count(),
+        "count": count,
         "page": filters.page,
         "page_size": filters.page_size,
-        "totals": totals(qs),
+        "totals": sums,
     }
 
 
