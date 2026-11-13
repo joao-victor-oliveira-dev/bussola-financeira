@@ -33,7 +33,7 @@ Um id de outro usuário responde **404**. Uma referência de outro usuário dent
 - **Filtros:** `account` casa com a origem **ou** o destino. `category` inclui as subcategorias. `q` busca na descrição e nas observações, sem diferenciar maiúsculas.
 - **Totais** cobrem o filtro inteiro (não só a página) e não incluem transferências.
 - **Categorias padrão:** criadas no cadastro, na mesma transação do usuário (`create_default_categories`, idempotente).
-- **Unicidade de categoria:** o banco tem `UniqueConstraint(nulls_distinct=False)`. A API também checa no código, porque no SQLite o `NULL` do pai fica fora da unicidade.
+- **Unicidade de categoria:** duas constraints parciais no banco: `user+kind+name` para as principais (`parent` nulo) e `user+kind+parent+name` para as subcategorias. A API checa antes, sem diferenciar maiúsculas, e trata a corrida (`IntegrityError` → 409).
 
 ## Telas
 - **Contas:** saldo total, cartões com a faixa na cor da conta e o saldo (negativo em coral), modal de criar/editar (com arquivar e excluir) e seção "Arquivadas" recolhida.
