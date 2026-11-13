@@ -73,13 +73,44 @@ export function DashboardPage() {
         </section>
       ) : (
         <>
-          <KpiCards data={summary.data} loading={summary.isLoading} />
+          <KpiCards
+            data={summary.data}
+            loading={summary.isLoading}
+            error={summary.isError}
+            onRetry={() => summary.refetch()}
+          />
           <div className="grid gap-4 lg:grid-cols-3">
-            <CashflowChart data={cashflow.data} loading={cashflow.isLoading} />
-            <CategoryBreakdown data={breakdown.data} loading={breakdown.isLoading} />
-            <NetWorthChart data={cashflow.data} loading={cashflow.isLoading} />
-            <PendingList data={pending.data} loading={pending.isLoading} />
-            <TopExpenses data={top.data} loading={top.isLoading} lookups={lookups} />
+            <CashflowChart
+              data={cashflow.data}
+              loading={cashflow.isLoading}
+              error={cashflow.isError}
+              onRetry={() => cashflow.refetch()}
+            />
+            <CategoryBreakdown
+              data={breakdown.data}
+              loading={breakdown.isLoading}
+              error={breakdown.isError}
+              onRetry={() => breakdown.refetch()}
+            />
+            <NetWorthChart
+              data={cashflow.data}
+              loading={cashflow.isLoading}
+              error={cashflow.isError}
+              onRetry={() => cashflow.refetch()}
+            />
+            <PendingList
+              data={pending.data}
+              loading={pending.isLoading}
+              error={pending.isError}
+              onRetry={() => pending.refetch()}
+            />
+            <TopExpenses
+              data={top.data}
+              loading={top.isLoading}
+              error={top.isError}
+              onRetry={() => top.refetch()}
+              lookups={lookups}
+            />
           </div>
         </>
       )}

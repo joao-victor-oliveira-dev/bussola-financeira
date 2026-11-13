@@ -9,12 +9,17 @@ import {
   YAxis,
 } from 'recharts'
 import type { CashflowPoint } from '@/api/generated/model'
-import { ChartCard } from '@/components/charts/ChartCard'
+import { ChartCard, type WidgetState } from '@/components/charts/ChartCard'
 import { ChartTooltip } from '@/components/charts/ChartTooltip'
 import { formatBRL } from '@/lib/money'
 import { monthLong, monthTick, moneyTick } from '@/pages/dashboard/chartFormat'
 
-export function NetWorthChart({ data, loading }: { data?: CashflowPoint[]; loading: boolean }) {
+export function NetWorthChart({
+  data,
+  loading,
+  error,
+  onRetry,
+}: { data?: CashflowPoint[] } & WidgetState) {
   const rows = useMemo(
     () => (data ?? []).map((p) => ({ month: p.month, balance: Number(p.balance) })),
     [data],
@@ -26,6 +31,8 @@ export function NetWorthChart({ data, loading }: { data?: CashflowPoint[]; loadi
       title="Patrimônio"
       description="Saldo somado das contas no fim de cada mês"
       loading={loading}
+      error={error}
+      onRetry={onRetry}
       empty={!loading && empty}
       className="lg:col-span-2"
     >

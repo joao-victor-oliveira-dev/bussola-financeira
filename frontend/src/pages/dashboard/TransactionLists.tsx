@@ -1,10 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Check } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { AccountOut, CategoryOut, TransactionOut } from '@/api/generated/model'
 import { useTransactionsUpdate } from '@/api/generated/transactions/transactions'
-import { ChartCard } from '@/components/charts/ChartCard'
+import { ChartCard, type WidgetState } from '@/components/charts/ChartCard'
 import { Money } from '@/components/Money'
 import { Button } from '@/components/ui/button'
 import { errorMessage, invalidateMoney } from '@/finance/cache'
@@ -18,17 +18,17 @@ type Lookups = { accounts: Map<number, AccountOut>; categories: Map<number, Cate
 export function TopExpenses({
   data,
   loading,
+  error,
+  onRetry,
   lookups,
-}: {
-  data?: TransactionOut[]
-  loading: boolean
-  lookups: Lookups
-}) {
+}: { data?: TransactionOut[]; lookups: Lookups } & WidgetState) {
   return (
     <ChartCard
       title="Maiores gastos"
       description="As 5 maiores despesas do mês"
       loading={loading}
+      error={error}
+      onRetry={onRetry}
       empty={!loading && !data?.length}
       emptyText="Nenhuma despesa neste mês."
       className="lg:col-span-3"
@@ -55,18 +55,36 @@ export function TopExpenses({
   )
 }
 
-export function PendingList({ data, loading }: { data?: TransactionOut[]; loading: boolean }) {
+export function PendingList({
+  data,
+  loading,
+  error,
+  onRetry,
+}: { data?: TransactionOut[] } & WidgetState) {
   const client = useQueryClient()
   const update = useTransactionsUpdate()
   const [today] = useState(() => toISODate(new Date()))
+  const [busy, setBusy] = useState<Set<number>>(() => new Set())
+  // Trava síncrona: o 2º clique de um duplo chega antes do re-render que desabilita o botão.
+  const inFlight = useRef(new Set<number>())
 
   const markPaid = async (tx: TransactionOut) => {
+    if (inFlight.current.has(tx.id)) return
+    inFlight.current.add(tx.id)
+    setBusy((s) => new Set(s).add(tx.id))
     try {
       await update.mutateAsync({ transactionId: tx.id, data: { status: 'paid' } })
       await invalidateMoney(client)
       toast.success('Lançamento efetivado.')
     } catch (err) {
       toast.error(errorMessage(err))
+    } finally {
+      inFlight.current.delete(tx.id)
+      setBusy((s) => {
+        const next = new Set(s)
+        next.delete(tx.id)
+        return next
+      })
     }
   }
 
@@ -75,6 +93,8 @@ export function PendingList({ data, loading }: { data?: TransactionOut[]; loadin
       title="Pendentes"
       description="O que ainda vai sair ou entrar"
       loading={loading}
+      error={error}
+      onRetry={onRetry}
       empty={!loading && !data?.length}
       emptyText="Nada pendente. Tudo em dia."
     >
@@ -102,6 +122,7 @@ export function PendingList({ data, loading }: { data?: TransactionOut[]; loadin
                 aria-label={`Marcar ${tx.description} como efetivado`}
                 title="Marcar como efetivado"
                 onClick={() => markPaid(tx)}
+                disabled={busy.has(tx.id)}
                 className="text-muted-foreground hover:text-income"
               >
                 <Check />

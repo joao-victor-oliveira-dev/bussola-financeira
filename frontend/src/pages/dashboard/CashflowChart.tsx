@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { CashflowPoint } from '@/api/generated/model'
-import { ChartCard } from '@/components/charts/ChartCard'
+import { ChartCard, type WidgetState } from '@/components/charts/ChartCard'
 import { ChartTooltip } from '@/components/charts/ChartTooltip'
 import { formatBRL } from '@/lib/money'
 import { monthLong, monthTick, moneyTick } from '@/pages/dashboard/chartFormat'
@@ -11,7 +11,12 @@ const SERIES = [
   { key: 'expense', name: 'Despesas', color: 'var(--chart-expense)' },
 ] as const
 
-export function CashflowChart({ data, loading }: { data?: CashflowPoint[]; loading: boolean }) {
+export function CashflowChart({
+  data,
+  loading,
+  error,
+  onRetry,
+}: { data?: CashflowPoint[] } & WidgetState) {
   // Memo: mesma referência entre renders evita o Recharts reanimar (ex.: troca de tema).
   const rows = useMemo(
     () =>
@@ -30,6 +35,8 @@ export function CashflowChart({ data, loading }: { data?: CashflowPoint[]; loadi
       title="Fluxo de caixa"
       description="Receitas e despesas dos últimos 12 meses"
       loading={loading}
+      error={error}
+      onRetry={onRetry}
       empty={!loading && empty}
       emptyText="Os meses aparecem aqui conforme você registra lançamentos."
       className="lg:col-span-2"

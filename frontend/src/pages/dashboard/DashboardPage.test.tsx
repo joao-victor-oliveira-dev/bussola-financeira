@@ -155,3 +155,35 @@ it('sem contas convida a cadastrar a primeira', async () => {
   const link = await screen.findByRole('link', { name: 'Cadastrar primeira conta' })
   expect(link).toHaveAttribute('href', '/contas')
 })
+
+it('widget com erro mostra a falha e permite tentar de novo', async () => {
+  let fail = true
+  setup('/', {
+    'GET /api/dashboard/summary': () =>
+      fail ? { status: 403, body: { detail: 'x' } } : { status: 200, body: summary },
+    'GET /api/dashboard/cashflow': () => ({ status: 403, body: { detail: 'x' } }),
+  })
+  const kpiError = await screen.findByRole('alert', { name: 'Resumo do mês' })
+  expect(kpiError).toHaveTextContent('Não foi possível carregar')
+  const flow = screen.getByRole('region', { name: /Fluxo de caixa/ })
+  expect(await within(flow).findByText(/Não foi possível carregar/)).toBeInTheDocument()
+  expect(within(flow).queryByText(/Os meses aparecem aqui/)).not.toBeInTheDocument()
+  fail = false
+  await userEvent.click(within(kpiError).getByRole('button', { name: 'Tentar de novo' }))
+  expect(await screen.findByRole('group', { name: 'Saldo total' })).toBeInTheDocument()
+})
+
+it('clique duplo em efetivar pendente envia uma vez só', async () => {
+  // Resposta lenta: o 2º clique chega com o 1º PATCH ainda em andamento.
+  const patch = vi.fn(
+    () =>
+      new Promise<{ status: number; body: unknown }>((resolve) =>
+        setTimeout(() => resolve({ status: 200, body: tx({ id: 8, status: 'paid' }) }), 300),
+      ),
+  )
+  setup('/', { 'PATCH /api/transactions/8': patch })
+  const btn = await screen.findByRole('button', { name: 'Marcar Streaming como efetivado' })
+  await userEvent.dblClick(btn)
+  await waitFor(() => expect(patch).toHaveBeenCalled())
+  expect(patch).toHaveBeenCalledTimes(1)
+})

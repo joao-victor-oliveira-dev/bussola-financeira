@@ -1,5 +1,6 @@
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import type { SummaryOut } from '@/api/generated/model'
+import { LoadError } from '@/components/charts/ChartCard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatBRL } from '@/lib/money'
 import { useCountUp } from '@/lib/useCountUp'
@@ -31,6 +32,7 @@ function points(current: string | null, previous: string | null): Delta {
 function Kpi({
   label,
   value,
+  exact,
   format,
   delta,
   hint,
@@ -38,6 +40,8 @@ function Kpi({
 }: {
   label: string
   value: number | null
+  /** Texto exato do valor final (da string decimal da API); a animação usa só o número. */
+  exact?: string
   format: (n: number) => string
   delta?: Delta
   hint: string
@@ -61,7 +65,7 @@ function Kpi({
           emphasis ? 'text-3xl' : 'text-xl sm:text-2xl',
         )}
       >
-        {value === null ? '—' : format(animated)}
+        {value === null ? '—' : animated === value && exact ? exact : format(animated)}
       </p>
       <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
         {delta ? (
@@ -88,7 +92,23 @@ function Kpi({
 const rateFmt = (n: number) =>
   `${n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
 
-export function KpiCards({ data, loading }: { data?: SummaryOut; loading: boolean }) {
+export function KpiCards({
+  data,
+  loading,
+  error,
+  onRetry,
+}: {
+  data?: SummaryOut
+  loading: boolean
+  error?: boolean
+  onRetry?: () => void
+}) {
+  if (error && !data)
+    return (
+      <div className="rounded-2xl border border-border bg-card p-5">
+        <LoadError label="Resumo do mês" onRetry={onRetry} />
+      </div>
+    )
   if (loading || !data)
     return (
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -103,6 +123,7 @@ export function KpiCards({ data, loading }: { data?: SummaryOut; loading: boolea
       <Kpi
         label="Saldo total"
         value={Number(data.balance)}
+        exact={formatBRL(data.balance)}
         format={formatBRL}
         hint="em todas as contas, hoje"
         emphasis
@@ -110,6 +131,7 @@ export function KpiCards({ data, loading }: { data?: SummaryOut; loading: boolea
       <Kpi
         label="Receitas"
         value={Number(data.income)}
+        exact={formatBRL(data.income)}
         format={formatBRL}
         delta={relative(data.income, data.previous.income, true)}
         hint={vsPrev}
@@ -117,6 +139,7 @@ export function KpiCards({ data, loading }: { data?: SummaryOut; loading: boolea
       <Kpi
         label="Despesas"
         value={Number(data.expense)}
+        exact={formatBRL(data.expense)}
         format={formatBRL}
         delta={relative(data.expense, data.previous.expense, false)}
         hint={vsPrev}

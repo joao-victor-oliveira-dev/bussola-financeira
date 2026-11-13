@@ -2,7 +2,7 @@ import { ChevronRight } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useState } from 'react'
 import type { CategorySlice } from '@/api/generated/model'
-import { ChartCard } from '@/components/charts/ChartCard'
+import { ChartCard, type WidgetState } from '@/components/charts/ChartCard'
 import { formatBRL, sumMoney } from '@/lib/money'
 import { cn } from '@/lib/utils'
 
@@ -23,17 +23,25 @@ function Bar({ ratio, thin }: { ratio: number; thin?: boolean }) {
 }
 
 /** Ranking de despesas por categoria principal; clique mostra as subcategorias. */
-export function CategoryBreakdown({ data, loading }: { data?: CategorySlice[]; loading: boolean }) {
+export function CategoryBreakdown({
+  data,
+  loading,
+  error,
+  onRetry,
+}: { data?: CategorySlice[] } & WidgetState) {
   const [open, setOpen] = useState<number | null | 'none'>('none')
   const slices = [...(data ?? [])].sort((a, b) => Number(b.total) - Number(a.total))
-  const total = Number(sumMoney(slices.map((s) => s.total)))
+  const totalExact = sumMoney(slices.map((s) => s.total))
+  const total = Number(totalExact) // só para proporções das barras
   const max = Math.max(...slices.map((s) => Number(s.total)), 1)
 
   return (
     <ChartCard
       title="Despesas por categoria"
-      description={total ? `Total de ${formatBRL(total)} no mês` : undefined}
+      description={total ? `Total de ${formatBRL(totalExact)} no mês` : undefined}
       loading={loading}
+      error={error}
+      onRetry={onRetry}
       empty={!loading && slices.length === 0}
       emptyText="Nenhuma despesa neste mês."
     >
