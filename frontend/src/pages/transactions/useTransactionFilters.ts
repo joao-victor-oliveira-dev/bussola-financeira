@@ -4,7 +4,7 @@ import type {
   TransactionsListParams,
   TransactionsListStatus,
 } from '@/api/generated/model'
-import { currentMonth, monthRange } from '@/lib/dates'
+import { monthRange, parseMonth } from '@/lib/dates'
 
 // Filtros vivem na URL: dá para voltar, recarregar e compartilhar o link.
 const KEYS = {
@@ -29,13 +29,7 @@ export type TxFilters = {
 
 export const PAGE_SIZE = 50
 
-const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/
-
 // Valores inválidos na URL (link velho, digitação) caem no padrão em vez de quebrar a API.
-function parseMonth(raw: string | null): string {
-  return raw && MONTH_RE.test(raw) ? raw : currentMonth()
-}
-
 function parsePage(raw: string | null): number {
   const n = Number(raw)
   return Number.isInteger(n) && n >= 1 ? n : 1

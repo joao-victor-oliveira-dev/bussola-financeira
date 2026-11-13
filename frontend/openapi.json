@@ -172,6 +172,67 @@
         "title": "AccountPatch",
         "type": "object"
       },
+      "CashflowPoint": {
+        "properties": {
+          "balance": {
+            "title": "Balance",
+            "type": "string"
+          },
+          "expense": {
+            "title": "Expense",
+            "type": "string"
+          },
+          "income": {
+            "title": "Income",
+            "type": "string"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "net": {
+            "title": "Net",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "income",
+          "expense",
+          "net",
+          "balance"
+        ],
+        "title": "CashflowPoint",
+        "type": "object"
+      },
+      "CategoryChild": {
+        "properties": {
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "color",
+          "total"
+        ],
+        "title": "CategoryChild",
+        "type": "object"
+      },
       "CategoryIn": {
         "properties": {
           "color": {
@@ -257,6 +318,29 @@
         "title": "CategoryOut",
         "type": "object"
       },
+      "CategoryParams": {
+        "properties": {
+          "kind": {
+            "default": "expense",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "month": {
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "title": "Month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month"
+        ],
+        "title": "CategoryParams",
+        "type": "object"
+      },
       "CategoryPatch": {
         "properties": {
           "color": {
@@ -299,6 +383,49 @@
         "title": "CategoryPatch",
         "type": "object"
       },
+      "CategorySlice": {
+        "properties": {
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/CategoryChild"
+            },
+            "title": "Children",
+            "type": "array"
+          },
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "color",
+          "total",
+          "children"
+        ],
+        "title": "CategorySlice",
+        "type": "object"
+      },
       "DetailOut": {
         "properties": {
           "detail": {
@@ -310,6 +437,19 @@
           "detail"
         ],
         "title": "DetailOut",
+        "type": "object"
+      },
+      "LimitParams": {
+        "properties": {
+          "limit": {
+            "default": 6,
+            "maximum": 20,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "LimitParams",
         "type": "object"
       },
       "LoginIn": {
@@ -329,6 +469,50 @@
           "password"
         ],
         "title": "LoginIn",
+        "type": "object"
+      },
+      "MonthFlows": {
+        "properties": {
+          "expense": {
+            "title": "Expense",
+            "type": "string"
+          },
+          "income": {
+            "title": "Income",
+            "type": "string"
+          },
+          "savings_rate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Savings Rate"
+          }
+        },
+        "required": [
+          "income",
+          "expense",
+          "savings_rate"
+        ],
+        "title": "MonthFlows",
+        "type": "object"
+      },
+      "MonthParams": {
+        "properties": {
+          "month": {
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "title": "Month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month"
+        ],
+        "title": "MonthParams",
         "type": "object"
       },
       "RegisterIn": {
@@ -355,6 +539,50 @@
           "password"
         ],
         "title": "RegisterIn",
+        "type": "object"
+      },
+      "SummaryOut": {
+        "properties": {
+          "balance": {
+            "title": "Balance",
+            "type": "string"
+          },
+          "expense": {
+            "title": "Expense",
+            "type": "string"
+          },
+          "income": {
+            "title": "Income",
+            "type": "string"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "previous": {
+            "$ref": "#/components/schemas/MonthFlows"
+          },
+          "savings_rate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Savings Rate"
+          }
+        },
+        "required": [
+          "income",
+          "expense",
+          "savings_rate",
+          "month",
+          "balance",
+          "previous"
+        ],
+        "title": "SummaryOut",
         "type": "object"
       },
       "TagIn": {
@@ -430,6 +658,27 @@
           }
         },
         "title": "TagPatch",
+        "type": "object"
+      },
+      "TopParams": {
+        "properties": {
+          "limit": {
+            "default": 5,
+            "maximum": 20,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "month": {
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "title": "Month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month"
+        ],
+        "title": "TopParams",
         "type": "object"
       },
       "Totals": {
@@ -1128,6 +1377,29 @@
         ]
       }
     },
+    "/api/auth/demo": {
+      "post": {
+        "description": "Entra como o usuário de demonstração (gera os dados na primeira vez).",
+        "operationId": "authDemo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Demo",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/auth/login": {
       "post": {
         "operationId": "authLogin",
@@ -1377,6 +1649,240 @@
         "summary": "Update Category",
         "tags": [
           "categories"
+        ]
+      }
+    },
+    "/api/dashboard/cashflow": {
+      "get": {
+        "operationId": "dashboardCashflow",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CashflowPoint"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Cashflow",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/dashboard/categories": {
+      "get": {
+        "operationId": "dashboardCategories",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "default": "expense",
+              "enum": [
+                "income",
+                "expense"
+              ],
+              "title": "Kind",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CategorySlice"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Categories",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/dashboard/pending": {
+      "get": {
+        "operationId": "dashboardPending",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 6,
+              "maximum": 20,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TransactionOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Pending",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/dashboard/summary": {
+      "get": {
+        "operationId": "dashboardSummary",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Summary",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/dashboard/top-expenses": {
+      "get": {
+        "operationId": "dashboardTopExpenses",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "maximum": 20,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TransactionOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Top Expenses",
+        "tags": [
+          "dashboard"
         ]
       }
     },

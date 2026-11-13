@@ -1,5 +1,6 @@
 import {
   formatDayHeader,
+  parseMonth,
   formatMonth,
   currentMonth,
   monthRange,
@@ -36,5 +37,18 @@ describe('datas', () => {
     expect(formatDayHeader('2026-11-13', today)).toBe('Hoje')
     expect(formatDayHeader('2026-11-12', today)).toBe('Ontem')
     expect(formatDayHeader('2026-11-10', today)).toBe('terça-feira, 10 de novembro')
+  })
+})
+
+describe('parseMonth', () => {
+  const today = new Date(2026, 10, 13)
+  it.each([
+    ['2026-03', '2026-03'],
+    [null, '2026-11'],
+    ['2026-13', '2026-11'],
+    ['2026-3', '2026-11'],
+    ['lixo', '2026-11'],
+  ])('%s → %s', (raw, expected) => {
+    expect(parseMonth(raw, today)).toBe(expected)
   })
 })
