@@ -34,7 +34,8 @@ A spec está em [`docs/specs/2026-11-13-fase-4-cartoes-recorrencias.md`](../spec
 - **Status** é calculado, não salvo: `paid` (tem pagamento), `closed` (hoje passou do fechamento), `open`.
 - **`Transaction.invoice`** é preenchido ao salvar. Se a data ou o cartão mudarem num PATCH, a fatura é recalculada. Trocar para conta limpa o campo.
 - **Limite usado:** compras de faturas ainda não pagas.
-- **Ressalva:** se você incluir uma compra numa fatura já paga, o valor do pagamento não muda. Desfaça e pague de novo.
+- **Fatura paga fica travada:** compra ou parcela nova que cairia nela → 422. Alterar valor, data, cartão ou tipo, ou excluir um item dela → 409. Excluir um plano com parcela em fatura paga → 409. Descrição, categoria, notas e tags continuam editáveis. Para mexer, desfaça o pagamento.
+- **A validação não grava nada:** a fatura só é criada ao salvar.
 
 ## Parcelamento
 - `split_amount`: as parcelas são arredondadas para baixo e o centavo que sobra vai na **1ª** (100 em 3x = 33,34 + 33,33 + 33,33).
@@ -68,3 +69,4 @@ O pagamento de fatura **não** pode ser editado por `PATCH /transactions` (409):
 
 ## Histórico de mudanças
 - 2026-11-14: criação (Fase 4).
+- 2026-11-14: revisão da Fase 4. Faturas pagas travadas, validação sem efeito colateral e `invalidateMoney` também invalidando `/api/cards`. A prévia das parcelas usa `splitMoney` (centavos), igual ao servidor.

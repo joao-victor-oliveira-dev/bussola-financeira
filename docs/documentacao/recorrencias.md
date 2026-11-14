@@ -19,16 +19,16 @@ Salário, aluguel e assinaturas são cadastrados uma vez como **regra**. O siste
   - Mensal: o dia do início. Dias 29 a 31 viram o último dia nos meses curtos.
   - Anual: a mesma data. 29/02 vira 28/02 em anos não bissextos.
   - Todas respeitam `end_date`.
-- **Geração:** cria as ocorrências de **hoje até hoje+60** que ainda não existem. É idempotente: pula as datas existentes, e o banco garante a unicidade. **Não preenche o passado**: uma regra criada com início antigo começa a gerar a partir de hoje.
-- **Editar:** apaga as ocorrências **futuras pendentes** e gera de novo. As efetivadas e as passadas ficam como estão.
+- **Geração:** cria as ocorrências de **hoje até hoje+60**. A regra guarda `generated_until` e o job só gera depois dessa data. Assim, uma ocorrência que você **apagou ou moveu não volta**. O banco ainda garante unicidade `(regra, data)`, e mover uma ocorrência para uma data ocupada → 409. **Não preenche o passado**: uma regra criada com início antigo começa a gerar a partir de hoje.
+- **Editar:** apaga as ocorrências **futuras pendentes**, zera `generated_until` e gera de novo. As efetivadas e as passadas ficam como estão.
 - **Pausar** (`active=false`): limpa as futuras pendentes. `next_dates` fica vazio.
-- **Excluir:** limpa as futuras pendentes. O histórico fica desvinculado (`SET_NULL`).
+- **Excluir:** limpa as futuras pendentes. O histórico fica desvinculado (`SET_NULL`). Uma conta ou um cartão usados por alguma regra não podem ser excluídos (409).
 - **Validação:** usa as mesmas regras de um lançamento (`resolve_transaction`): refs do usuário, conta **ou** cartão, cartão só para despesa, transferência com destino diferente. Fim antes do início → 422.
 - **Cartão:** cada ocorrência cai na fatura certa da sua data.
 
 ## Celery
 - **Broker:** Redis via `CELERY_BROKER_URL`. **Sem broker** (dev local e testes), `CELERY_TASK_ALWAYS_EAGER=True`: as tarefas rodam no próprio processo.
-- **Beat:** a cada 24 h, `finance.generate_all_recurring` e `finance.reset_demo` (o reset só age com `DEMO_ENABLED`).
+- **Beat** (crontab, horário fixo): `finance.generate_all_recurring` às 3h e `finance.reset_demo` às 4h. O reset só age com `DEMO_ENABLED`. Horário fixo evita que o reset caia no meio de uma visita.
 - **Docker Compose:** serviços `redis`, `worker` (`celery -A config worker`) e `beat` (`celery -A config beat`), com as mesmas variáveis do backend (âncora YAML `backend-env`).
 - **Sem Docker:** rode `python manage.py generate_recurring` quando quiser. A API também gera ao criar ou editar uma regra.
 
@@ -46,3 +46,4 @@ Salário, aluguel e assinaturas são cadastrados uma vez como **regra**. O siste
 
 ## Histórico de mudanças
 - 2026-11-14: criação (Fase 4).
+- 2026-11-14: revisão da Fase 4. `generated_until`, 409 em data ocupada, conta ou cartão protegidos e beat por crontab.
