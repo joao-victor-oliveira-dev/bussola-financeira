@@ -339,3 +339,16 @@ it('lista mostra o cartão e a parcela', async () => {
   ])
   expect(await screen.findByText(/Roxinho · parcela 2\/10/)).toBeInTheDocument()
 })
+
+it('prévia das parcelas usa a mesma divisão do servidor', async () => {
+  setup()
+  await userEvent.click(await screen.findByRole('button', { name: 'Novo lançamento' }))
+  const dialog = await screen.findByRole('dialog')
+  await userEvent.click(within(dialog).getByRole('radio', { name: 'Cartão' }))
+  await userEvent.type(within(dialog).getByLabelText('Valor'), '10000')
+  await userEvent.clear(within(dialog).getByLabelText('Parcelas'))
+  await userEvent.type(within(dialog).getByLabelText('Parcelas'), '3')
+  expect(nbsp(within(dialog).getByText(/1x de/).textContent)).toContain(
+    '1x de R$ 33,34 + 2x de R$ 33,33',
+  )
+})

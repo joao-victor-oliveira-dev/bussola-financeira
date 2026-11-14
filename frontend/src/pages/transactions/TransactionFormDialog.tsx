@@ -20,7 +20,7 @@ import { SubmitButton } from '@/components/SubmitButton'
 import { CategoryOptions } from '@/finance/CategoryOptions'
 import { errorMessage, invalidateMoney } from '@/finance/cache'
 import { toISODate } from '@/lib/dates'
-import { formatBRL, maskBRLInput, parseBRL } from '@/lib/money'
+import { formatBRL, maskBRLInput, parseBRL, splitMoney } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { KindToggle } from '@/pages/transactions/KindToggle'
 import { SourceToggle } from '@/pages/transactions/SourceToggle'
@@ -67,6 +67,13 @@ type Errors = Partial<
 >
 
 type Source = 'account' | 'card'
+
+/** "10x de R$ 300,00" ou "1x de R$ 33,34 + 2x de R$ 33,33" (mesma divisão do servidor). */
+function installmentPreview(total: string, count: number): string {
+  const [first, ...rest] = splitMoney(total, count)
+  if (rest.every((v) => v === first)) return `${count}x de ${formatBRL(first)}`
+  return `1x de ${formatBRL(first)} + ${count - 1}x de ${formatBRL(rest[0])}`
+}
 
 function TransactionForm({ state, onDone }: { state: TxDialogState; onDone: () => void }) {
   const { tx, mode } = state
@@ -284,8 +291,7 @@ function TransactionForm({ state, onDone }: { state: TxDialogState; onDone: () =
           )}
           {mode !== 'edit' && Number(installments) > 1 && parseBRL(amount) && (
             <p className="-mt-2 text-sm text-muted-foreground sm:col-span-2">
-              {installments}x de {formatBRL(Number(parseBRL(amount)) / Number(installments))} (o
-              centavo que sobrar vai na 1ª parcela)
+              {installmentPreview(parseBRL(amount)!, Number(installments))}
             </p>
           )}
         </div>
