@@ -2,6 +2,7 @@ import {
   ArrowLeftRight,
   CreditCard,
   LayoutDashboard,
+  Repeat,
   Shapes,
   Target,
   Wallet,
@@ -17,5 +18,6 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/contas', label: 'Contas', icon: Wallet },
   { to: '/cartoes', label: 'Cartões', icon: CreditCard },
   { to: '/orcamento', label: 'Orçamento', icon: Target },
+  { to: '/recorrencias', label: 'Recorrências', icon: Repeat, mobile: false },
   { to: '/categorias', label: 'Categorias', icon: Shapes, mobile: false },
 ]

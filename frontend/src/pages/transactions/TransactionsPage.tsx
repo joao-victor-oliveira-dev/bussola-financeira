@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Plus, Shapes } from 'lucide-react'
+import { Plus, Repeat, Shapes } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
@@ -122,6 +122,16 @@ export function TransactionsPage() {
             >
               <Shapes aria-hidden="true" />
               Categorias
+            </Link>
+            <Link
+              to="/recorrencias"
+              aria-label="Recorrências"
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'icon' }),
+                'size-10 md:hidden',
+              )}
+            >
+              <Repeat aria-hidden="true" />
             </Link>
             <Button onClick={openNew} className="hidden h-10 rounded-[10px] px-4 md:inline-flex">
               <Plus aria-hidden="true" />
