@@ -1,5 +1,6 @@
 import {
   formatDayHeader,
+  formatShortDate,
   parseMonth,
   formatMonth,
   currentMonth,
@@ -51,4 +52,8 @@ describe('parseMonth', () => {
   ])('%s → %s', (raw, expected) => {
     expect(parseMonth(raw, today)).toBe(expected)
   })
+})
+
+it('formatShortDate', () => {
+  expect(formatShortDate('2026-11-20')).toBe('20 de nov')
 })

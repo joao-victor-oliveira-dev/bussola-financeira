@@ -29,3 +29,11 @@ export function invalidateCatalog(client: QueryClient) {
 export function errorMessage(error: unknown): string {
   return error instanceof ApiError ? error.detail : 'Algo deu errado. Tente novamente.'
 }
+
+/** Cartões e faturas: lista, detalhes de fatura e tudo que depende de dinheiro. */
+export function invalidateCards(client: QueryClient) {
+  return Promise.all([
+    client.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith('/api/cards') }),
+    invalidateMoney(client),
+  ])
+}
