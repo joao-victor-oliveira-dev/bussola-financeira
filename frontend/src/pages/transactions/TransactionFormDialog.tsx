@@ -3,8 +3,10 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { useAccountsList } from '@/api/generated/accounts/accounts'
+import { useCardsList } from '@/api/generated/cards/cards'
 import { useCategoriesList } from '@/api/generated/categories/categories'
 import type { TransactionIn, TransactionOut, TransactionOutKind } from '@/api/generated/model'
+import { useInstallmentsCreate } from '@/api/generated/installments/installments'
 import { useTagsList } from '@/api/generated/tags/tags'
 import {
   useTransactionsCreate,
@@ -18,9 +20,10 @@ import { SubmitButton } from '@/components/SubmitButton'
 import { CategoryOptions } from '@/finance/CategoryOptions'
 import { errorMessage, invalidateMoney } from '@/finance/cache'
 import { toISODate } from '@/lib/dates'
-import { maskBRLInput, parseBRL } from '@/lib/money'
+import { formatBRL, maskBRLInput, parseBRL, splitMoney } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { KindToggle } from '@/pages/transactions/KindToggle'
+import { SourceToggle } from '@/pages/transactions/SourceToggle'
 
 export type TxDialogState = {
   open: boolean
@@ -59,7 +62,18 @@ export function TransactionFormDialog({
   )
 }
 
-type Errors = Partial<Record<'amount' | 'description' | 'account' | 'toAccount', string>>
+type Errors = Partial<
+  Record<'amount' | 'description' | 'account' | 'toAccount' | 'card' | 'installments', string>
+>
+
+type Source = 'account' | 'card'
+
+/** "10x de R$ 300,00" ou "1x de R$ 33,34 + 2x de R$ 33,33" (mesma divisão do servidor). */
+function installmentPreview(total: string, count: number): string {
+  const [first, ...rest] = splitMoney(total, count)
+  if (rest.every((v) => v === first)) return `${count}x de ${formatBRL(first)}`
+  return `1x de ${formatBRL(first)} + ${count - 1}x de ${formatBRL(rest[0])}`
+}
 
 function TransactionForm({ state, onDone }: { state: TxDialogState; onDone: () => void }) {
   const { tx, mode } = state
@@ -67,8 +81,10 @@ function TransactionForm({ state, onDone }: { state: TxDialogState; onDone: () =
   const { data: allAccounts = [] } = useAccountsList()
   const { data: categories = [] } = useCategoriesList()
   const { data: tags = [] } = useTagsList()
+  const { data: allCards = [] } = useCardsList()
   const create = useTransactionsCreate()
   const update = useTransactionsUpdate()
+  const createPlan = useInstallmentsCreate()
 
   // Arquivadas ficam fora, exceto as já usadas pelo lançamento em edição.
   const accounts = allAccounts.filter(
@@ -84,6 +100,12 @@ function TransactionForm({ state, onDone }: { state: TxDialogState; onDone: () =
   const [tagIds, setTagIds] = useState<number[]>(tx?.tag_ids ?? [])
   const [paid, setPaid] = useState(mode === 'edit' ? tx?.status !== 'pending' : true)
   const [notes, setNotes] = useState(tx?.notes ?? '')
+  const cards = allCards.filter((c) => !c.archived || c.id === tx?.credit_card_id)
+  const [source, setSource] = useState<Source>(tx?.credit_card_id ? 'card' : 'account')
+  const [cardId, setCardId] = useState(String(tx?.credit_card_id ?? cards[0]?.id ?? ''))
+  const [installments, setInstallments] = useState('1')
+  // Uma parcela já existente não muda de cartão nem vira outro parcelamento.
+  const isInstallment = mode === 'edit' && Boolean(tx?.installment)
   const [errors, setErrors] = useState<Errors>({})
   const [apiError, setApiError] = useState<string | null>(null)
 
@@ -99,6 +121,7 @@ function TransactionForm({ state, onDone }: { state: TxDialogState; onDone: () =
 
   const changeKind = (next: TransactionOutKind) => {
     setKind(next)
+    if (next !== 'expense') setSource('account') // cartão é só para despesas
     const current = categories.find((c) => String(c.id) === categoryId)
     if (current && current.kind !== next) setCategoryId('')
   }
@@ -110,10 +133,17 @@ function TransactionForm({ state, onDone }: { state: TxDialogState; onDone: () =
     e.preventDefault()
     const parsed = parseBRL(amount)
     const isTransfer = kind === 'transfer'
+    const onCard = kind === 'expense' && source === 'card'
+    const count = Number(installments)
     const next: Errors = {
       amount: parsed && Number(parsed) > 0 ? undefined : 'Informe um valor maior que zero.',
       description: description.trim() ? undefined : 'Informe a descrição.',
-      account: accountId ? undefined : 'Escolha a conta.',
+      account: onCard || accountId ? undefined : 'Escolha a conta.',
+      card: !onCard || cardId ? undefined : 'Escolha o cartão.',
+      installments:
+        !onCard || (Number.isInteger(count) && count >= 1 && count <= 48)
+          ? undefined
+          : 'De 1 a 48 parcelas.',
       toAccount:
         !isTransfer || (toAccountId && toAccountId !== accountId)
           ? undefined
@@ -122,14 +152,16 @@ function TransactionForm({ state, onDone }: { state: TxDialogState; onDone: () =
     setErrors(next)
     if (Object.values(next).some(Boolean) || !parsed) return
 
+    const categoryValue = !isTransfer && categoryId ? Number(categoryId) : null
     const data: TransactionIn = {
       kind,
       amount: parsed,
       date,
       description: description.trim(),
-      account_id: Number(accountId),
+      account_id: onCard ? null : Number(accountId),
+      credit_card_id: onCard ? Number(cardId) : null,
       to_account_id: isTransfer ? Number(toAccountId) : null,
-      category_id: !isTransfer && categoryId ? Number(categoryId) : null,
+      category_id: categoryValue,
       status: paid ? 'paid' : 'pending',
       notes: notes.trim(),
       tag_ids: tagIds,
@@ -137,6 +169,17 @@ function TransactionForm({ state, onDone }: { state: TxDialogState; onDone: () =
     setApiError(null)
     try {
       if (mode === 'edit' && tx) await update.mutateAsync({ transactionId: tx.id, data })
+      else if (onCard && count > 1)
+        await createPlan.mutateAsync({
+          data: {
+            credit_card_id: Number(cardId),
+            description: description.trim(),
+            total: parsed,
+            count,
+            purchase_date: date,
+            category_id: categoryValue,
+          },
+        })
       else await create.mutateAsync({ data })
     } catch (err) {
       return setApiError(errorMessage(err))
@@ -195,27 +238,88 @@ function TransactionForm({ state, onDone }: { state: TxDialogState; onDone: () =
         </Field>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Field label={kind === 'transfer' ? 'Da conta' : 'Conta'} error={errors.account}>
-          {({ id, describedBy, invalid }) => (
-            <NativeSelect
-              id={id}
-              aria-describedby={describedBy}
-              aria-invalid={invalid}
-              value={accountId}
-              onChange={(e) => setAccountId(e.target.value)}
-            >
-              <option value="" disabled>
-                Escolha…
-              </option>
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
+      {kind === 'expense' && cards.length > 0 && !isInstallment && (
+        <SourceToggle value={source} onChange={setSource} />
+      )}
+
+      {kind === 'expense' && source === 'card' && (
+        <div className="grid gap-5 sm:grid-cols-[1fr_8rem]">
+          <Field label="Cartão de crédito" error={errors.card}>
+            {({ id, describedBy, invalid }) => (
+              <NativeSelect
+                id={id}
+                aria-describedby={describedBy}
+                aria-invalid={invalid}
+                value={cardId}
+                disabled={isInstallment}
+                onChange={(e) => setCardId(e.target.value)}
+              >
+                <option value="" disabled>
+                  Escolha…
                 </option>
-              ))}
-            </NativeSelect>
+                {cards.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </NativeSelect>
+            )}
+          </Field>
+          {mode !== 'edit' ? (
+            <Field label="Parcelas" error={errors.installments}>
+              {({ id, describedBy, invalid }) => (
+                <input
+                  id={id}
+                  aria-describedby={describedBy}
+                  aria-invalid={invalid}
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={48}
+                  value={installments}
+                  onChange={(e) => setInstallments(e.target.value)}
+                  className={controlClass}
+                />
+              )}
+            </Field>
+          ) : (
+            tx?.installment && (
+              <p className="self-end pb-3 text-sm text-muted-foreground">
+                Parcela {tx.installment}
+              </p>
+            )
           )}
-        </Field>
+          {mode !== 'edit' && Number(installments) > 1 && parseBRL(amount) && (
+            <p className="-mt-2 text-sm text-muted-foreground sm:col-span-2">
+              {installmentPreview(parseBRL(amount)!, Number(installments))}
+            </p>
+          )}
+        </div>
+      )}
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        {(kind !== 'expense' || source === 'account') && (
+          <Field label={kind === 'transfer' ? 'Da conta' : 'Conta'} error={errors.account}>
+            {({ id, describedBy, invalid }) => (
+              <NativeSelect
+                id={id}
+                aria-describedby={describedBy}
+                aria-invalid={invalid}
+                value={accountId}
+                onChange={(e) => setAccountId(e.target.value)}
+              >
+                <option value="" disabled>
+                  Escolha…
+                </option>
+                {accounts.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+              </NativeSelect>
+            )}
+          </Field>
+        )}
         {kind === 'transfer' ? (
           <Field label="Para a conta" error={errors.toAccount}>
             {({ id, describedBy, invalid }) => (
@@ -310,7 +414,7 @@ function TransactionForm({ state, onDone }: { state: TxDialogState; onDone: () =
       </label>
 
       <FormError message={apiError} />
-      <SubmitButton loading={create.isPending || update.isPending}>
+      <SubmitButton loading={create.isPending || update.isPending || createPlan.isPending}>
         {mode === 'edit' ? 'Salvar alterações' : 'Adicionar lançamento'}
       </SubmitButton>
     </form>

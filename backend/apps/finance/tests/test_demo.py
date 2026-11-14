@@ -7,7 +7,15 @@ from django.db.models import Sum
 from django.test import Client
 
 from apps.finance.demo import seed_demo
-from apps.finance.models import Account, Category, Tag, Transaction
+from apps.finance.models import (
+    Account,
+    Category,
+    CreditCard,
+    InstallmentPlan,
+    RecurringRule,
+    Tag,
+    Transaction,
+)
 from apps.users.models import User
 from apps.users.tests.factories import UserFactory
 
@@ -27,17 +35,30 @@ def test_seed_covers_twelve_months_until_this_month():
     qs = Transaction.objects.filter(user=user)
     dates = sorted(qs.values_list("date", flat=True))
     assert dates[0] >= datetime.date(2025, 12, 1)
-    assert dates[-1] <= datetime.date(2026, 11, 30)
-    months = {d.strftime("%Y-%m") for d in dates}
-    assert len(months) == 12
+    # só parcelas futuras e recorrências pendentes passam do mês atual
+    future = qs.filter(date__gt=datetime.date(2026, 11, 30))
+    assert not future.filter(installment_plan__isnull=True, recurring_rule__isnull=True).exists()
+    assert not future.exclude(status="pending").filter(installment_plan__isnull=True).exists()
+    months = {d.strftime("%Y-%m") for d in dates if d <= datetime.date(2026, 11, 30)}
+    assert len(months) == 12  # 12 meses de histórico; o resto é futuro (parcelas/pendentes)
     assert Account.objects.filter(user=user).count() == 4
-    assert qs.filter(kind="income", description="Salário").count() == 12
+    card = CreditCard.objects.get(user=user)
+    assert InstallmentPlan.objects.filter(user=user).count() == 2
+    assert RecurringRule.objects.filter(user=user).count() == 8
+    assert qs.filter(credit_card=card).exists()
+    # faturas vencidas pagas; nenhuma paga antes de vencer
+    assert card.invoices.filter(payment__isnull=False).exists()
+    assert not qs.filter(to_credit_card=card, date__gt=TODAY).exists()
+    salaries = qs.filter(kind="income", description="Salário")
+    assert salaries.filter(date__lte=datetime.date(2026, 11, 30)).count() == 12
+    assert salaries.filter(date__gt=TODAY, status="pending").exists()  # vindos da recorrência
     assert qs.filter(kind="transfer").exists()
     assert Tag.objects.filter(user=user, name="viagem").exists()
     assert qs.filter(tags__name="viagem").exists()
     # contas futuras do mês atual ficam pendentes; nada pago depois de hoje
     assert qs.filter(status="pending", date__gt=TODAY).exists()
-    assert not qs.filter(status="paid", date__gt=TODAY).exists()
+    # parcelas futuras são compras já feitas (efetivadas); o resto do futuro é pendente
+    assert not qs.filter(status="paid", date__gt=TODAY, installment_plan__isnull=True).exists()
     # tudo categorizado com categorias do próprio usuário e do tipo certo
     assert not qs.exclude(kind="transfer").filter(category__isnull=True).exists()
     assert not qs.exclude(category__user=user).exclude(category__isnull=True).exists()

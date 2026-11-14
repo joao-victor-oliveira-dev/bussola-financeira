@@ -59,3 +59,5 @@ Um `month` fora do formato `YYYY-MM` (ou com mês 13) responde **422**.
 ## Histórico de mudanças
 - 2026-11-13: criação (Fase 3).
 - 2026-11-13: revisão da Fase 3. Estados de erro com retry, invalidação pelo catálogo, clique duplo, valores exatos e mês formatado por uma fonte só.
+- 2026-11-14: "Pendentes" virou **"Próximos vencimentos"**, que soma `GET /dashboard/invoices-due` (faturas a pagar, com link "Pagar") aos lançamentos pendentes.
+- 2026-11-14: o saldo total do resumo conta só até **hoje**: parcelas e lançamentos efetivados com data futura não descontam antes da hora.

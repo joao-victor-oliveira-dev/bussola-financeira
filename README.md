@@ -2,7 +2,7 @@
 
 Controle financeiro pessoal com dashboards: contas, cartões de crédito, parcelamentos, recorrências, orçamento mensal e importação de extratos — com uma interface moderna, animada e responsiva (instalável como PWA).
 
-> Projeto de portfólio fullstack **Python + React**. Status: **em construção** — Fases 1 a 3 concluídas (fundação; contas, categorias e lançamentos; painel e demo).
+> Projeto de portfólio fullstack **Python + React**. Status: **em construção** — Fases 1 a 4 concluídas (fundação; contas, categorias e lançamentos; painel e demo; cartões, parcelas e recorrências).
 >
 > **Experimente sem cadastro:** na tela de login, clique em **Entrar como visitante** para ver o app com 12 meses de dados de exemplo.
 
@@ -80,7 +80,7 @@ cd frontend && npm test && npm run lint && npm run typecheck
 - [x] Fase 1 — Fundação (monorepo, Docker, CI, auth, esqueleto do front)
 - [x] Fase 2 — Contas, categorias e lançamentos
 - [x] Fase 3 — Dashboard + usuário demo
-- [ ] Fase 4 — Cartões, parcelamentos e recorrências
+- [x] Fase 4 — Cartões, parcelamentos e recorrências
 - [ ] Fase 5 — Orçamento
 - [ ] Fase 6 — Importação OFX/CSV
 - [ ] Fase 7 — PWA, polimento visual e deploy

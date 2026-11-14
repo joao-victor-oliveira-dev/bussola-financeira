@@ -15,3 +15,5 @@ export const TX_KINDS = {
 } as const
 
 export const TX_STATUS = { paid: 'Efetivado', pending: 'Pendente' } as const
+
+export const INVOICE_STATUS = { open: 'Aberta', closed: 'Fechada', paid: 'Paga' } as const

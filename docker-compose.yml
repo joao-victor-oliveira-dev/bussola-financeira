@@ -13,16 +13,20 @@ services:
       timeout: 3s
       retries: 20
 
+  redis:
+    image: redis:7-alpine
+
   backend:
     build: ./backend
     command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
-    environment:
+    environment: &backend-env
       DEBUG: "True"
       SECRET_KEY: dev-docker-insecure
       ALLOWED_HOSTS: localhost,127.0.0.1,backend
       DATABASE_URL: postgres://bussola:bussola@db:5432/bussola
       CSRF_TRUSTED_ORIGINS: http://localhost:5173
       DEMO_ENABLED: "True"
+      CELERY_BROKER_URL: redis://redis:6379/0
     volumes:
       - ./backend:/app
       - /app/venv  # esconde o venv local do container
@@ -31,6 +35,27 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
+
+  # Tarefas assíncronas (Celery) e agendador diário (beat)
+  worker:
+    build: ./backend
+    command: celery -A config worker --loglevel=info
+    environment: *backend-env
+    volumes:
+      - ./backend:/app
+      - /app/venv
+    depends_on: [backend, redis]
+
+  beat:
+    build: ./backend
+    command: celery -A config beat --loglevel=info --schedule /tmp/celerybeat-schedule
+    environment: *backend-env
+    volumes:
+      - ./backend:/app
+      - /app/venv
+    depends_on: [backend, redis]
 
   frontend:
     build: ./frontend

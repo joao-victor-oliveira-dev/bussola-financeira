@@ -24,9 +24,11 @@ import type {
   CategorySlice,
   DashboardCashflowParams,
   DashboardCategoriesParams,
+  DashboardInvoicesDueParams,
   DashboardPendingParams,
   DashboardSummaryParams,
   DashboardTopExpensesParams,
+  InvoiceDueOut,
   SummaryOut,
   TransactionOut
 } from '../model';
@@ -256,6 +258,113 @@ export function useDashboardCategories<TData = Awaited<ReturnType<typeof dashboa
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getDashboardCategoriesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getDashboardInvoicesDueUrl = (params?: DashboardInvoicesDueParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/dashboard/invoices-due?${stringifiedParams}` : `/api/dashboard/invoices-due`
+}
+
+/**
+ * @summary Invoices Due
+ */
+export const dashboardInvoicesDue = async (params?: DashboardInvoicesDueParams, options?: Parameters<typeof customFetch>[1]): Promise<InvoiceDueOut[]> => {
+
+  return customFetch<InvoiceDueOut[]>(getDashboardInvoicesDueUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDashboardInvoicesDueQueryKey = (params?: DashboardInvoicesDueParams,) => {
+    return [
+    `/api/dashboard/invoices-due`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getDashboardInvoicesDueQueryOptions = <TData = Awaited<ReturnType<typeof dashboardInvoicesDue>>, TError = unknown>(params?: DashboardInvoicesDueParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardInvoicesDue>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDashboardInvoicesDueQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof dashboardInvoicesDue>>> = ({ signal }) => dashboardInvoicesDue(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof dashboardInvoicesDue>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DashboardInvoicesDueQueryResult = NonNullable<Awaited<ReturnType<typeof dashboardInvoicesDue>>>
+export type DashboardInvoicesDueQueryError = unknown
+
+
+/** @summary Invoices Due */
+export function useDashboardInvoicesDue<TData = Awaited<ReturnType<typeof dashboardInvoicesDue>>, TError = unknown>(
+ params: undefined |  DashboardInvoicesDueParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardInvoicesDue>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof dashboardInvoicesDue>>,
+          TError,
+          Awaited<ReturnType<typeof dashboardInvoicesDue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Invoices Due */
+export function useDashboardInvoicesDue<TData = Awaited<ReturnType<typeof dashboardInvoicesDue>>, TError = unknown>(
+ params?: DashboardInvoicesDueParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardInvoicesDue>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof dashboardInvoicesDue>>,
+          TError,
+          Awaited<ReturnType<typeof dashboardInvoicesDue>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Invoices Due */
+export function useDashboardInvoicesDue<TData = Awaited<ReturnType<typeof dashboardInvoicesDue>>, TError = unknown>(
+ params?: DashboardInvoicesDueParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardInvoicesDue>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Invoices Due */
+export function useDashboardInvoicesDue<TData = Awaited<ReturnType<typeof dashboardInvoicesDue>>, TError = unknown>(
+ params?: DashboardInvoicesDueParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof dashboardInvoicesDue>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDashboardInvoicesDueQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

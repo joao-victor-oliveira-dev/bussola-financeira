@@ -49,3 +49,14 @@ export function sumMoney(values: string[]): string {
   const abs = Math.abs(total)
   return `${total < 0 ? '-' : ''}${Math.floor(abs / 100)}.${String(abs % 100).padStart(2, '0')}`
 }
+
+const fromCents = (cents: number) =>
+  `${cents < 0 ? '-' : ''}${Math.floor(Math.abs(cents) / 100)}.${String(Math.abs(cents) % 100).padStart(2, '0')}`
+
+/** Divide em parcelas como o backend: arredonda para baixo e o centavo restante vai na 1ª. */
+export function splitMoney(total: string, count: number): string[] {
+  const cents = toCents(total)
+  const base = Math.floor(cents / count)
+  const first = cents - base * (count - 1)
+  return [fromCents(first), ...Array(count - 1).fill(fromCents(base))]
+}

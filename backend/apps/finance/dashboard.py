@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from django.db.models import Q, QuerySet, Sum
 from django.db.models.functions import TruncMonth
+from django.utils import timezone
 
 from apps.finance.models import Account, Category, Transaction, TxKind, TxStatus
 
@@ -59,7 +60,7 @@ def summary(user, month: str) -> dict:
     current = _month_flows(user, month)
     return {
         "month": month,
-        "balance": _net_worth(user),
+        "balance": _net_worth(user, until=timezone.localdate()),  # hoje: futuro não desconta
         **current,
         "previous": _month_flows(user, shift_month(month, -1)),
     }
@@ -143,6 +144,7 @@ def top_expenses(user, month: str, limit: int = 5) -> QuerySet[Transaction]:
     return (
         Transaction.objects.filter(user=user, kind=TxKind.EXPENSE, date__range=(first, last))
         .order_by("-amount", "-date", "-id")
+        .select_related("invoice", "installment_plan")
         .prefetch_related("tags")[:limit]
     )
 
@@ -151,5 +153,36 @@ def pending(user, limit: int = 6) -> QuerySet[Transaction]:
     return (
         Transaction.objects.filter(user=user, status=TxStatus.PENDING)
         .order_by("date", "id")
+        .select_related("invoice", "installment_plan")
         .prefetch_related("tags")[:limit]
     )
+
+
+def invoices_due(user, today: datetime.date, days: int = 30) -> list[dict]:
+    """Faturas com itens, não pagas, vencidas ou vencendo até `days` dias (vencimento crescente)."""
+    from apps.finance.cards import invoice_dates
+    from apps.finance.models import Invoice
+
+    invoices = (
+        Invoice.objects.filter(user=user, payment__isnull=True)
+        .select_related("card")
+        .annotate(total=Sum("items__amount"))
+        .filter(total__gt=0)
+    )
+    limit = today + datetime.timedelta(days=days)
+    result = []
+    for inv in invoices:
+        _, due = invoice_dates(inv.card, inv.reference)
+        if due <= limit:
+            result.append(
+                {
+                    "card_id": inv.card_id,
+                    "card_name": inv.card.name,
+                    "card_color": inv.card.color,
+                    "reference": inv.reference,
+                    "due_date": due,
+                    "total": inv.total,
+                    "overdue": due < today,
+                }
+            )
+    return sorted(result, key=lambda i: (i["due_date"], i["card_name"]))
