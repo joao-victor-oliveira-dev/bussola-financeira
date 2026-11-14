@@ -661,6 +661,122 @@
         "title": "DetailOut",
         "type": "object"
       },
+      "InstallmentPlanIn": {
+        "properties": {
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "count": {
+            "maximum": 48,
+            "minimum": 2,
+            "title": "Count",
+            "type": "integer"
+          },
+          "credit_card_id": {
+            "title": "Credit Card Id",
+            "type": "integer"
+          },
+          "description": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "purchase_date": {
+            "format": "date",
+            "title": "Purchase Date",
+            "type": "string"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Total"
+          }
+        },
+        "required": [
+          "credit_card_id",
+          "description",
+          "total",
+          "count",
+          "purchase_date"
+        ],
+        "title": "InstallmentPlanIn",
+        "type": "object"
+      },
+      "InstallmentPlanOut": {
+        "properties": {
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "credit_card_id": {
+            "title": "Credit Card Id",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TransactionOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "purchase_date": {
+            "format": "date",
+            "title": "Purchase Date",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "credit_card_id",
+          "description",
+          "total",
+          "count",
+          "purchase_date",
+          "category_id",
+          "items"
+        ],
+        "title": "InstallmentPlanOut",
+        "type": "object"
+      },
       "InvoiceDetailOut": {
         "properties": {
           "card_id": {
@@ -2663,6 +2779,73 @@
         "summary": "Health",
         "tags": [
           "infra"
+        ]
+      }
+    },
+    "/api/installments": {
+      "post": {
+        "operationId": "installmentsCreate",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstallmentPlanIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallmentPlanOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Create Installments",
+        "tags": [
+          "installments"
+        ]
+      }
+    },
+    "/api/installments/{plan_id}": {
+      "delete": {
+        "operationId": "installmentsDelete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "title": "Plan Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Delete Installments",
+        "tags": [
+          "installments"
         ]
       }
     },

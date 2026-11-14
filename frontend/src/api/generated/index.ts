@@ -4,5 +4,6 @@ export * from './cards/cards';
 export * from './categories/categories';
 export * from './dashboard/dashboard';
 export * from './infra/infra';
+export * from './installments/installments';
 export * from './tags/tags';
 export * from './transactions/transactions';

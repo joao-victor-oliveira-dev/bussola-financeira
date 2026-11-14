@@ -31,6 +31,8 @@ export * from './dashboardPendingParams';
 export * from './dashboardSummaryParams';
 export * from './dashboardTopExpensesParams';
 export * from './detailOut';
+export * from './installmentPlanIn';
+export * from './installmentPlanOut';
 export * from './invoiceDetailOut';
 export * from './invoiceDetailOutStatus';
 export * from './invoiceSummaryOut';
