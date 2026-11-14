@@ -60,6 +60,10 @@ def create_installments(request, payload: InstallmentPlanIn):
 @router.delete("/{plan_id}", operation_id="installmentsDelete", response={204: None})
 def delete_installments(request, plan_id: int):
     plan = get_owned(InstallmentPlan, request.auth, plan_id)
+    if plan.installments.filter(invoice__payment__isnull=False).exists():
+        raise HttpError(
+            409, "Há parcelas em faturas pagas. Desfaça esses pagamentos antes de excluir."
+        )
     plan.installments.all().delete()
     plan.delete()
     return Status(204, None)

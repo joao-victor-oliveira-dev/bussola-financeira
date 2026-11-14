@@ -1,10 +1,11 @@
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from ninja import Router, Status
 from ninja.errors import HttpError
 from ninja.security import django_auth
 
 from apps.finance.api.common import get_owned
-from apps.finance.models import Account
+from apps.finance.models import Account, RecurringRule
 from apps.finance.schemas import AccountIn, AccountOut, AccountPatch
 from apps.finance.services import accounts_with_balance
 
@@ -55,5 +56,9 @@ def delete_account(request, account_id: int):
     acc = get_owned(Account, request.auth, account_id)
     if acc.transactions.exists() or acc.incoming.exists():
         raise HttpError(409, "Esta conta tem lançamentos. Arquive em vez de excluir.")
+    if RecurringRule.objects.filter(Q(account=acc) | Q(to_account=acc)).exists():
+        raise HttpError(
+            409, "Esta conta é usada por recorrências. Altere ou exclua as regras antes."
+        )
     acc.delete()
     return Status(204, None)

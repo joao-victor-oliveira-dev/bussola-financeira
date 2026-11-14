@@ -196,6 +196,8 @@ class RecurringRule(Owned):
     start_date = models.DateField("início")
     end_date = models.DateField("fim", null=True, blank=True)
     active = models.BooleanField("ativa", default=True)
+    # Até onde já gerou: o job não recria ocorrência que o usuário apagou ou moveu.
+    generated_until = models.DateField(null=True, blank=True, editable=False)
 
     class Meta:
         verbose_name = "recorrência"

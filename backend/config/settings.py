@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import environ
+from celery.schedules import crontab
 from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,9 +32,14 @@ CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="")
 CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_TIMEZONE = "America/Sao_Paulo"  # igual ao TIME_ZONE (definido abaixo)
+# Horário fixo (madrugada), não "a cada 24 h desde o deploy":
+# assim o reset da demo nunca cai no meio de uma visita.
 CELERY_BEAT_SCHEDULE = {
-    "gerar-recorrencias": {"task": "finance.generate_all_recurring", "schedule": 60 * 60 * 24},
-    "resetar-demo": {"task": "finance.reset_demo", "schedule": 60 * 60 * 24},
+    "gerar-recorrencias": {
+        "task": "finance.generate_all_recurring",
+        "schedule": crontab(hour=3, minute=0),
+    },
+    "resetar-demo": {"task": "finance.reset_demo", "schedule": crontab(hour=4, minute=0)},
 }
 
 INSTALLED_APPS = [

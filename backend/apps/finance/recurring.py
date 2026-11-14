@@ -46,7 +46,11 @@ def generate(rule: RecurringRule, today: datetime.date | None = None) -> int:
     if not rule.active:
         return 0
     today = today or datetime.date.today()
-    dates = occurrences(rule, today, today + datetime.timedelta(days=HORIZON_DAYS))
+    start = today
+    if rule.generated_until and rule.generated_until >= today:
+        start = rule.generated_until + datetime.timedelta(days=1)
+    end = today + datetime.timedelta(days=HORIZON_DAYS)
+    dates = occurrences(rule, start, end) if start <= end else []
     existing = set(
         Transaction.objects.filter(recurring_rule=rule, date__in=dates).values_list(
             "date", flat=True
@@ -75,6 +79,8 @@ def generate(rule: RecurringRule, today: datetime.date | None = None) -> int:
         if d not in existing
     ]
     Transaction.objects.bulk_create(new)
+    rule.generated_until = max(end, rule.generated_until or end)
+    rule.save(update_fields=["generated_until"])
     return len(new)
 
 
@@ -87,7 +93,10 @@ def clear_future_pending(rule: RecurringRule, today: datetime.date) -> None:
 
 @transaction.atomic
 def regenerate(rule: RecurringRule, today: datetime.date | None = None) -> int:
+    """Regra editada: refaz o futuro pendente a partir de hoje."""
     today = today or datetime.date.today()
+    rule.generated_until = None
+    rule.save(update_fields=["generated_until"])
     clear_future_pending(rule, today)
     return generate(rule, today)
 

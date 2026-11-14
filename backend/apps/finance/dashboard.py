@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from django.db.models import Q, QuerySet, Sum
 from django.db.models.functions import TruncMonth
+from django.utils import timezone
 
 from apps.finance.models import Account, Category, Transaction, TxKind, TxStatus
 
@@ -59,7 +60,7 @@ def summary(user, month: str) -> dict:
     current = _month_flows(user, month)
     return {
         "month": month,
-        "balance": _net_worth(user),
+        "balance": _net_worth(user, until=timezone.localdate()),  # hoje: futuro não desconta
         **current,
         "previous": _month_flows(user, shift_month(month, -1)),
     }

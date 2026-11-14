@@ -48,6 +48,12 @@ def create_plan(user, data: dict) -> InstallmentPlan:
     )
     for i, amount in enumerate(split_amount(plan.total, plan.count)):
         date = add_months(plan.purchase_date, i)
+        invoice = get_or_create_invoice(card, invoice_reference(card, date))
+        if invoice.payment_id:
+            raise InvalidTransaction(
+                f"A fatura de {invoice.reference} já foi paga. Desfaça o pagamento para incluir"
+                " a compra nela."
+            )
         Transaction.objects.create(
             user=user,
             kind=TxKind.EXPENSE,
@@ -55,7 +61,7 @@ def create_plan(user, data: dict) -> InstallmentPlan:
             date=date,
             description=f"{plan.description} ({i + 1}/{plan.count})",
             credit_card=card,
-            invoice=get_or_create_invoice(card, invoice_reference(card, date)),
+            invoice=invoice,
             category=category,
             installment_plan=plan,
             installment_number=i + 1,

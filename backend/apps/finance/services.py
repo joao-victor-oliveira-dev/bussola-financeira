@@ -108,18 +108,19 @@ def resolve_transaction(user, data: dict) -> dict:
     fatura sai da data); transferência exige conta destino diferente e não tem categoria; os
     outros tipos não têm destino; categoria precisa ser do mesmo tipo.
     """
-    from apps.finance.cards import get_or_create_invoice, invoice_reference
+    from apps.finance.cards import invoice_reference
     from apps.finance.models import CreditCard
 
     kind = data["kind"]
-    account = card = invoice = None
+    account = card = invoice_ref = None
     if data.get("credit_card_id"):
         if kind != TxKind.EXPENSE:
             raise InvalidTransaction("Compras no cartão são sempre despesas.")
         card = CreditCard.objects.filter(user=user, pk=data["credit_card_id"]).first()
         if card is None:
             raise InvalidTransaction("Cartão inválido.")
-        invoice = get_or_create_invoice(card, invoice_reference(card, data["date"]))
+        # só a referência: a fatura é criada na hora de salvar (validação não grava nada)
+        invoice_ref = invoice_reference(card, data["date"])
     else:
         account = Account.objects.filter(user=user, pk=data.get("account_id")).first()
         if account is None:
@@ -154,7 +155,7 @@ def resolve_transaction(user, data: dict) -> dict:
         "description": data["description"],
         "account": account,
         "credit_card": card,
-        "invoice": invoice,
+        "invoice_ref": invoice_ref,
         "to_account": to_account,
         "category": category,
         "status": data["status"],

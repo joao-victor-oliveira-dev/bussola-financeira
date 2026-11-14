@@ -14,7 +14,14 @@ from apps.finance.cards import (
     invoice_summary,
     limit_used,
 )
-from apps.finance.models import Account, CreditCard, Transaction, TxKind, TxStatus
+from apps.finance.models import (
+    Account,
+    CreditCard,
+    RecurringRule,
+    Transaction,
+    TxKind,
+    TxStatus,
+)
 from apps.finance.schemas import (
     CardIn,
     CardOut,
@@ -94,6 +101,10 @@ def delete_card(request, card_id: int):
     card = get_owned(CreditCard, request.auth, card_id)
     if card.purchases.exists() or card.payments.exists():
         raise HttpError(409, "Este cartão tem lançamentos. Arquive em vez de excluir.")
+    if RecurringRule.objects.filter(credit_card=card).exists():
+        raise HttpError(
+            409, "Este cartão é usado por recorrências. Altere ou exclua as regras antes."
+        )
     card.delete()
     return Status(204, None)
 
