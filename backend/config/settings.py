@@ -26,6 +26,16 @@ CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
 DEMO_ENABLED = env("DEMO_ENABLED")
 DEMO_EMAIL = env("DEMO_EMAIL", default="demo@bussola.app")
 
+# Celery: sem broker (dev local/testes) as tarefas rodam na hora, no próprio processo.
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="")
+CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_TIMEZONE = "America/Sao_Paulo"  # igual ao TIME_ZONE (definido abaixo)
+CELERY_BEAT_SCHEDULE = {
+    "gerar-recorrencias": {"task": "finance.generate_all_recurring", "schedule": 60 * 60 * 24},
+    "resetar-demo": {"task": "finance.reset_demo", "schedule": 60 * 60 * 24},
+}
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
