@@ -155,3 +155,33 @@ def pending(user, limit: int = 6) -> QuerySet[Transaction]:
         .select_related("invoice", "installment_plan")
         .prefetch_related("tags")[:limit]
     )
+
+
+def invoices_due(user, today: datetime.date, days: int = 30) -> list[dict]:
+    """Faturas com itens, não pagas, vencidas ou vencendo até `days` dias (vencimento crescente)."""
+    from apps.finance.cards import invoice_dates
+    from apps.finance.models import Invoice
+
+    invoices = (
+        Invoice.objects.filter(user=user, payment__isnull=True)
+        .select_related("card")
+        .annotate(total=Sum("items__amount"))
+        .filter(total__gt=0)
+    )
+    limit = today + datetime.timedelta(days=days)
+    result = []
+    for inv in invoices:
+        _, due = invoice_dates(inv.card, inv.reference)
+        if due <= limit:
+            result.append(
+                {
+                    "card_id": inv.card_id,
+                    "card_name": inv.card.name,
+                    "card_color": inv.card.color,
+                    "reference": inv.reference,
+                    "due_date": due,
+                    "total": inv.total,
+                    "overdue": due < today,
+                }
+            )
+    return sorted(result, key=lambda i: (i["due_date"], i["card_name"]))

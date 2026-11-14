@@ -2,13 +2,15 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Check } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
-import type { AccountOut, CategoryOut, TransactionOut } from '@/api/generated/model'
+import { Link } from 'react-router'
+import type { AccountOut, CategoryOut, InvoiceDueOut, TransactionOut } from '@/api/generated/model'
 import { useTransactionsUpdate } from '@/api/generated/transactions/transactions'
 import { ChartCard, type WidgetState } from '@/components/charts/ChartCard'
 import { Money } from '@/components/Money'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { errorMessage, invalidateMoney } from '@/finance/cache'
 import { parseISODate, toISODate } from '@/lib/dates'
+import { cn } from '@/lib/utils'
 
 const shortDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' })
 const fmtDate = (iso: string) => shortDate.format(parseISODate(iso)).replace('.', '')
@@ -55,12 +57,13 @@ export function TopExpenses({
   )
 }
 
-export function PendingList({
+export function UpcomingList({
   data,
+  invoices,
   loading,
   error,
   onRetry,
-}: { data?: TransactionOut[] } & WidgetState) {
+}: { data?: TransactionOut[]; invoices?: InvoiceDueOut[] } & WidgetState) {
   const client = useQueryClient()
   const update = useTransactionsUpdate()
   const [today] = useState(() => toISODate(new Date()))
@@ -90,15 +93,43 @@ export function PendingList({
 
   return (
     <ChartCard
-      title="Pendentes"
-      description="O que ainda vai sair ou entrar"
+      title="Próximos vencimentos"
+      description="Faturas e lançamentos pendentes"
       loading={loading}
       error={error}
       onRetry={onRetry}
-      empty={!loading && !data?.length}
+      empty={!loading && !data?.length && !invoices?.length}
       emptyText="Nada pendente. Tudo em dia."
     >
       <ul className="divide-y divide-border">
+        {invoices?.map((inv) => (
+          <li
+            key={`${inv.card_id}-${inv.reference}`}
+            className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+          >
+            <span
+              aria-hidden="true"
+              className="h-8 w-1 shrink-0 rounded-full"
+              style={{ backgroundColor: inv.card_color }}
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium">Fatura {inv.card_name}</span>
+              <span
+                className={inv.overdue ? 'text-xs text-expense' : 'text-xs text-muted-foreground'}
+              >
+                {inv.overdue ? 'Vencida' : 'Vence'} em {fmtDate(inv.due_date)}
+              </span>
+            </span>
+            <Money value={inv.total} tone="expense" className="text-sm font-semibold" />
+            <Link
+              to={`/cartoes?cartao=${inv.card_id}&fatura=${inv.reference}`}
+              aria-label={`Pagar fatura ${inv.card_name}`}
+              className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'shrink-0')}
+            >
+              Pagar
+            </Link>
+          </li>
+        ))}
         {data?.map((tx) => {
           const late = tx.date < today
           return (

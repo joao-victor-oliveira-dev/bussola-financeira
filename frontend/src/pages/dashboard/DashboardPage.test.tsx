@@ -75,6 +75,20 @@ function setup(path = '/', extra = {}) {
       status: 200,
       body: [tx({ id: 7, description: 'Aluguel', amount: '2000.00' })],
     }),
+    'GET /api/dashboard/invoices-due': () => ({
+      status: 200,
+      body: [
+        {
+          card_id: 3,
+          card_name: 'Roxinho',
+          card_color: '#b88cf2',
+          reference: '2026-11',
+          due_date: '2026-11-20',
+          total: '1250.40',
+          overdue: false,
+        },
+      ],
+    }),
     'GET /api/dashboard/pending': () => ({
       status: 200,
       body: [tx({ id: 8, description: 'Streaming', amount: '55.90', status: 'pending' })],
@@ -139,8 +153,8 @@ it('lista maiores gastos e pendentes', async () => {
   setup()
   const top = await screen.findByRole('region', { name: 'Maiores gastos' })
   expect(await within(top).findByText('Aluguel')).toBeInTheDocument()
-  const pend = screen.getByRole('region', { name: 'Pendentes' })
-  expect(await within(pend).findByText('Streaming')).toBeInTheDocument()
+  const upcoming = screen.getByRole('region', { name: 'Próximos vencimentos' })
+  expect(await within(upcoming).findByText('Streaming')).toBeInTheDocument()
 })
 
 it('gráficos têm tabela equivalente para leitor de tela', async () => {
@@ -186,4 +200,13 @@ it('clique duplo em efetivar pendente envia uma vez só', async () => {
   await userEvent.dblClick(btn)
   await waitFor(() => expect(patch).toHaveBeenCalled())
   expect(patch).toHaveBeenCalledTimes(1)
+})
+
+it('próximos vencimentos mostra a fatura com atalho para pagar', async () => {
+  setup()
+  const upcoming = await screen.findByRole('region', { name: 'Próximos vencimentos' })
+  expect(await within(upcoming).findByText('Fatura Roxinho')).toBeInTheDocument()
+  expect(nbsp(upcoming.textContent)).toContain('R$ 1.250,40')
+  const pay = within(upcoming).getByRole('link', { name: 'Pagar fatura Roxinho' })
+  expect(pay).toHaveAttribute('href', '/cartoes?cartao=3&fatura=2026-11')
 })

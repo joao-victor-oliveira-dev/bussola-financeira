@@ -648,6 +648,19 @@
         "title": "CategorySlice",
         "type": "object"
       },
+      "DaysParams": {
+        "properties": {
+          "days": {
+            "default": 30,
+            "maximum": 90,
+            "minimum": 1,
+            "title": "Days",
+            "type": "integer"
+          }
+        },
+        "title": "DaysParams",
+        "type": "object"
+      },
       "DetailOut": {
         "properties": {
           "detail": {
@@ -840,6 +853,50 @@
           "items"
         ],
         "title": "InvoiceDetailOut",
+        "type": "object"
+      },
+      "InvoiceDueOut": {
+        "properties": {
+          "card_color": {
+            "title": "Card Color",
+            "type": "string"
+          },
+          "card_id": {
+            "title": "Card Id",
+            "type": "integer"
+          },
+          "card_name": {
+            "title": "Card Name",
+            "type": "string"
+          },
+          "due_date": {
+            "format": "date",
+            "title": "Due Date",
+            "type": "string"
+          },
+          "overdue": {
+            "title": "Overdue",
+            "type": "boolean"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "card_id",
+          "card_name",
+          "card_color",
+          "reference",
+          "due_date",
+          "total",
+          "overdue"
+        ],
+        "title": "InvoiceDueOut",
         "type": "object"
       },
       "InvoiceSummaryOut": {
@@ -3010,6 +3067,50 @@
           }
         ],
         "summary": "Categories",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/dashboard/invoices-due": {
+      "get": {
+        "operationId": "dashboardInvoicesDue",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 90,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceDueOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Invoices Due",
         "tags": [
           "dashboard"
         ]
