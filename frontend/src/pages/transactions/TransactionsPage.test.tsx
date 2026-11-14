@@ -33,6 +33,28 @@ const categories = [
   { id: 20, name: 'Salário', kind: 'income', parent_id: null, color: '#41d095' },
 ]
 
+const cards = [
+  {
+    id: 3,
+    name: 'Roxinho',
+    limit: '8000.00',
+    closing_day: 10,
+    due_day: 20,
+    payment_account_id: 1,
+    color: '#b88cf2',
+    archived: false,
+    limit_used: '0.00',
+    current_invoice: {
+      reference: '2026-11',
+      closing_date: '2026-11-10',
+      due_date: '2026-11-20',
+      total: '0.00',
+      status: 'open',
+      payment_id: null,
+    },
+  },
+]
+
 const tx = (over: Record<string, unknown>) => ({
   id: 1,
   kind: 'expense',
@@ -62,6 +84,7 @@ function setup(extra = {}, items: unknown[] = [], path = '/lancamentos') {
     'GET /api/accounts': () => ({ status: 200, body: accounts }),
     'GET /api/categories': () => ({ status: 200, body: categories }),
     'GET /api/tags': () => ({ status: 200, body: [] }),
+    'GET /api/cards': () => ({ status: 200, body: cards }),
     'GET /api/transactions': () => ({ status: 200, body: page(items) }),
     ...extra,
   })
@@ -163,6 +186,7 @@ it('cria despesa enviando o valor convertido', async () => {
       date: toISODate(new Date()),
       description: 'Feira',
       account_id: 1,
+      credit_card_id: null,
       to_account_id: null,
       category_id: 11,
       status: 'paid',
@@ -250,4 +274,68 @@ it('editar transferência com destino arquivado mantém o destino visível', asy
   const dest = within(dialog).getByLabelText('Para a conta') as HTMLSelectElement
   expect(dest.value).toBe('2')
   expect(dest.selectedOptions[0]?.textContent).toBe('Reserva')
+})
+
+it('compra no cartão envia o cartão e nenhuma conta', async () => {
+  let sent: Record<string, unknown> | null = null
+  setup({
+    'POST /api/transactions': (init: RequestInit) => {
+      sent = JSON.parse(String(init.body))
+      return { status: 201, body: tx({ id: 70, account_id: null, credit_card_id: 3 }) }
+    },
+  })
+  await userEvent.click(await screen.findByRole('button', { name: 'Novo lançamento' }))
+  const dialog = await screen.findByRole('dialog')
+  await userEvent.click(within(dialog).getByRole('radio', { name: 'Cartão' }))
+  expect(within(dialog).queryByLabelText('Conta')).not.toBeInTheDocument()
+  await userEvent.selectOptions(within(dialog).getByLabelText('Cartão de crédito'), '3')
+  await userEvent.type(within(dialog).getByLabelText('Valor'), '15990')
+  await userEvent.type(within(dialog).getByLabelText('Descrição'), 'Tênis')
+  await userEvent.click(within(dialog).getByRole('button', { name: 'Adicionar lançamento' }))
+  await waitFor(() => expect(sent).not.toBeNull())
+  expect(sent).toMatchObject({ credit_card_id: 3, account_id: null, amount: '159.90' })
+})
+
+it('compra parcelada cria um parcelamento', async () => {
+  let sent: unknown = null
+  setup({
+    'POST /api/installments': (init: RequestInit) => {
+      sent = JSON.parse(String(init.body))
+      return { status: 201, body: { id: 1, items: [] } }
+    },
+  })
+  await userEvent.click(await screen.findByRole('button', { name: 'Novo lançamento' }))
+  const dialog = await screen.findByRole('dialog')
+  await userEvent.click(within(dialog).getByRole('radio', { name: 'Cartão' }))
+  await userEvent.selectOptions(within(dialog).getByLabelText('Cartão de crédito'), '3')
+  await userEvent.type(within(dialog).getByLabelText('Valor'), '300000')
+  await userEvent.type(within(dialog).getByLabelText('Descrição'), 'Notebook')
+  await userEvent.clear(within(dialog).getByLabelText('Parcelas'))
+  await userEvent.type(within(dialog).getByLabelText('Parcelas'), '10')
+  expect(within(dialog).getByText(/10x de R\$/)).toBeInTheDocument()
+  await userEvent.click(within(dialog).getByRole('button', { name: 'Adicionar lançamento' }))
+  await waitFor(() =>
+    expect(sent).toEqual({
+      credit_card_id: 3,
+      description: 'Notebook',
+      total: '3000.00',
+      count: 10,
+      purchase_date: toISODate(new Date()),
+      category_id: null,
+    }),
+  )
+})
+
+it('lista mostra o cartão e a parcela', async () => {
+  setup({}, [
+    tx({
+      id: 9,
+      description: 'Notebook (2/10)',
+      account_id: null,
+      credit_card_id: 3,
+      installment: '2/10',
+      invoice: '2026-11',
+    }),
+  ])
+  expect(await screen.findByText(/Roxinho · parcela 2\/10/)).toBeInTheDocument()
 })
