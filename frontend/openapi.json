@@ -172,6 +172,228 @@
         "title": "AccountPatch",
         "type": "object"
       },
+      "CardIn": {
+        "properties": {
+          "archived": {
+            "default": false,
+            "title": "Archived",
+            "type": "boolean"
+          },
+          "closing_day": {
+            "maximum": 28,
+            "minimum": 1,
+            "title": "Closing Day",
+            "type": "integer"
+          },
+          "color": {
+            "default": "#6c9ef8",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "title": "Color",
+            "type": "string"
+          },
+          "due_day": {
+            "maximum": 28,
+            "minimum": 1,
+            "title": "Due Day",
+            "type": "integer"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Limit"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "payment_account_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Account Id"
+          }
+        },
+        "required": [
+          "name",
+          "limit",
+          "closing_day",
+          "due_day"
+        ],
+        "title": "CardIn",
+        "type": "object"
+      },
+      "CardOut": {
+        "properties": {
+          "archived": {
+            "title": "Archived",
+            "type": "boolean"
+          },
+          "closing_day": {
+            "title": "Closing Day",
+            "type": "integer"
+          },
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "current_invoice": {
+            "$ref": "#/components/schemas/InvoiceSummaryOut"
+          },
+          "due_day": {
+            "title": "Due Day",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "string"
+          },
+          "limit_used": {
+            "title": "Limit Used",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "payment_account_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Account Id"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "limit",
+          "closing_day",
+          "due_day",
+          "payment_account_id",
+          "color",
+          "archived",
+          "limit_used",
+          "current_invoice"
+        ],
+        "title": "CardOut",
+        "type": "object"
+      },
+      "CardPatch": {
+        "properties": {
+          "archived": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived"
+          },
+          "closing_day": {
+            "anyOf": [
+              {
+                "maximum": 28,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closing Day"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "pattern": "^#[0-9a-fA-F]{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "due_day": {
+            "anyOf": [
+              {
+                "maximum": 28,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Day"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limit"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "payment_account_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Account Id"
+          }
+        },
+        "title": "CardPatch",
+        "type": "object"
+      },
       "CashflowPoint": {
         "properties": {
           "balance": {
@@ -439,6 +661,123 @@
         "title": "DetailOut",
         "type": "object"
       },
+      "InvoiceDetailOut": {
+        "properties": {
+          "card_id": {
+            "title": "Card Id",
+            "type": "integer"
+          },
+          "closing_date": {
+            "format": "date",
+            "title": "Closing Date",
+            "type": "string"
+          },
+          "due_date": {
+            "format": "date",
+            "title": "Due Date",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TransactionOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "payment_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Id"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "closed",
+              "paid"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference",
+          "closing_date",
+          "due_date",
+          "total",
+          "status",
+          "payment_id",
+          "card_id",
+          "items"
+        ],
+        "title": "InvoiceDetailOut",
+        "type": "object"
+      },
+      "InvoiceSummaryOut": {
+        "properties": {
+          "closing_date": {
+            "format": "date",
+            "title": "Closing Date",
+            "type": "string"
+          },
+          "due_date": {
+            "format": "date",
+            "title": "Due Date",
+            "type": "string"
+          },
+          "payment_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Id"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "closed",
+              "paid"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference",
+          "closing_date",
+          "due_date",
+          "total",
+          "status",
+          "payment_id"
+        ],
+        "title": "InvoiceSummaryOut",
+        "type": "object"
+      },
       "LimitParams": {
         "properties": {
           "limit": {
@@ -513,6 +852,35 @@
           "month"
         ],
         "title": "MonthParams",
+        "type": "object"
+      },
+      "PayInvoiceIn": {
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          }
+        },
+        "title": "PayInvoiceIn",
         "type": "object"
       },
       "RegisterIn": {
@@ -717,6 +1085,17 @@
             ],
             "title": "Account"
           },
+          "card": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card"
+          },
           "category": {
             "anyOf": [
               {
@@ -825,8 +1204,15 @@
       "TransactionIn": {
         "properties": {
           "account_id": {
-            "title": "Account Id",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
           },
           "amount": {
             "anyOf": [
@@ -850,6 +1236,17 @@
               }
             ],
             "title": "Category Id"
+          },
+          "credit_card_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Card Id"
           },
           "date": {
             "format": "date",
@@ -909,8 +1306,7 @@
           "kind",
           "amount",
           "date",
-          "description",
-          "account_id"
+          "description"
         ],
         "title": "TransactionIn",
         "type": "object"
@@ -918,8 +1314,15 @@
       "TransactionOut": {
         "properties": {
           "account_id": {
-            "title": "Account Id",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
           },
           "amount": {
             "title": "Amount",
@@ -936,6 +1339,17 @@
             ],
             "title": "Category Id"
           },
+          "credit_card_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Card Id"
+          },
           "date": {
             "format": "date",
             "title": "Date",
@@ -949,6 +1363,28 @@
             "title": "Id",
             "type": "integer"
           },
+          "installment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Installment"
+          },
+          "invoice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invoice"
+          },
           "kind": {
             "enum": [
               "income",
@@ -961,6 +1397,17 @@
           "notes": {
             "title": "Notes",
             "type": "string"
+          },
+          "recurring_rule_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recurring Rule Id"
           },
           "status": {
             "enum": [
@@ -987,6 +1434,17 @@
               }
             ],
             "title": "To Account Id"
+          },
+          "to_credit_card_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Credit Card Id"
           }
         },
         "required": [
@@ -996,7 +1454,12 @@
           "date",
           "description",
           "account_id",
+          "credit_card_id",
           "to_account_id",
+          "to_credit_card_id",
+          "invoice",
+          "installment",
+          "recurring_rule_id",
           "category_id",
           "status",
           "notes",
@@ -1078,6 +1541,17 @@
               }
             ],
             "title": "Category Id"
+          },
+          "credit_card_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Card Id"
           },
           "date": {
             "anyOf": [
@@ -1508,6 +1982,297 @@
         "summary": "Register",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/cards": {
+      "get": {
+        "operationId": "cardsList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CardOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "List Cards",
+        "tags": [
+          "cards"
+        ]
+      },
+      "post": {
+        "operationId": "cardsCreate",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CardIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Create Card",
+        "tags": [
+          "cards"
+        ]
+      }
+    },
+    "/api/cards/{card_id}": {
+      "delete": {
+        "operationId": "cardsDelete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "title": "Card Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Delete Card",
+        "tags": [
+          "cards"
+        ]
+      },
+      "patch": {
+        "operationId": "cardsUpdate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "title": "Card Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CardPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Update Card",
+        "tags": [
+          "cards"
+        ]
+      }
+    },
+    "/api/cards/{card_id}/invoices/{reference}": {
+      "get": {
+        "operationId": "cardsInvoice",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "title": "Card Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "reference",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Reference",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDetailOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Get Invoice",
+        "tags": [
+          "cards"
+        ]
+      }
+    },
+    "/api/cards/{card_id}/invoices/{reference}/pay": {
+      "delete": {
+        "operationId": "cardsInvoiceUnpay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "title": "Card Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "reference",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Reference",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceSummaryOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Unpay Invoice",
+        "tags": [
+          "cards"
+        ]
+      },
+      "post": {
+        "description": "Paga a fatura: transferência da conta de pagamento para o cartão (não é despesa).",
+        "operationId": "cardsInvoicePay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "title": "Card Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "reference",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Reference",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayInvoiceIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceSummaryOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Pay Invoice",
+        "tags": [
+          "cards"
         ]
       }
     },
@@ -2094,6 +2859,22 @@
                 }
               ],
               "title": "Account"
+            }
+          },
+          {
+            "in": "query",
+            "name": "card",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Card"
             }
           },
           {

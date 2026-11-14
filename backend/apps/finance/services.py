@@ -104,13 +104,26 @@ class InvalidTransaction(Exception):
 def resolve_transaction(user, data: dict) -> dict:
     """Valida um lançamento (estado completo, ids) e devolve os campos do model.
 
-    Regras: refs precisam ser do usuário; transferência exige conta destino diferente e
-    não tem categoria; os outros tipos não têm destino; categoria precisa ser do mesmo tipo.
+    Regras: refs precisam ser do usuário; origem é conta OU cartão (cartão só despesa, e a
+    fatura sai da data); transferência exige conta destino diferente e não tem categoria; os
+    outros tipos não têm destino; categoria precisa ser do mesmo tipo.
     """
+    from apps.finance.cards import get_or_create_invoice, invoice_reference
+    from apps.finance.models import CreditCard
+
     kind = data["kind"]
-    account = Account.objects.filter(user=user, pk=data["account_id"]).first()
-    if account is None:
-        raise InvalidTransaction("Conta inválida.")
+    account = card = invoice = None
+    if data.get("credit_card_id"):
+        if kind != TxKind.EXPENSE:
+            raise InvalidTransaction("Compras no cartão são sempre despesas.")
+        card = CreditCard.objects.filter(user=user, pk=data["credit_card_id"]).first()
+        if card is None:
+            raise InvalidTransaction("Cartão inválido.")
+        invoice = get_or_create_invoice(card, invoice_reference(card, data["date"]))
+    else:
+        account = Account.objects.filter(user=user, pk=data.get("account_id")).first()
+        if account is None:
+            raise InvalidTransaction("Escolha a conta ou o cartão.")
 
     to_account = None
     category = None
@@ -140,6 +153,8 @@ def resolve_transaction(user, data: dict) -> dict:
         "date": data["date"],
         "description": data["description"],
         "account": account,
+        "credit_card": card,
+        "invoice": invoice,
         "to_account": to_account,
         "category": category,
         "status": data["status"],

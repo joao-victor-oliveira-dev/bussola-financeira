@@ -97,7 +97,8 @@ class TransactionIn(Schema):
     amount: PositiveMoney
     date: datetime.date
     description: Name(140)
-    account_id: int
+    account_id: int | None = None
+    credit_card_id: int | None = None
     to_account_id: int | None = None
     category_id: int | None = None
     status: TxStatusLit = "paid"
@@ -111,6 +112,7 @@ class TransactionPatch(Schema):
     date: datetime.date | None = None
     description: Name(140) | None = None
     account_id: int | None = None
+    credit_card_id: int | None = None
     to_account_id: int | None = None
     category_id: int | None = None
     status: TxStatusLit | None = None
@@ -124,8 +126,13 @@ class TransactionOut(Schema):
     amount: MoneyOut
     date: datetime.date
     description: str
-    account_id: int
+    account_id: int | None
+    credit_card_id: int | None
     to_account_id: int | None
+    to_credit_card_id: int | None
+    invoice: str | None
+    installment: str | None
+    recurring_rule_id: int | None
     category_id: int | None
     status: TxStatusLit
     notes: str
@@ -134,6 +141,16 @@ class TransactionOut(Schema):
     @staticmethod
     def resolve_tag_ids(obj) -> list[int]:
         return [t.id for t in obj.tags.all()]
+
+    @staticmethod
+    def resolve_invoice(obj) -> str | None:
+        return obj.invoice.reference if obj.invoice_id else None
+
+    @staticmethod
+    def resolve_installment(obj) -> str | None:
+        if not obj.installment_plan_id:
+            return None
+        return f"{obj.installment_number}/{obj.installment_plan.count}"
 
 
 class Totals(Schema):
@@ -152,3 +169,61 @@ class TransactionPage(Schema):
 
 class DetailOut(Schema):
     detail: str
+
+
+# ---- Cartões ----
+Day = Annotated[int, Field(ge=1, le=28)]
+NonNegativeMoney = Annotated[Decimal, Field(ge=0, max_digits=14, decimal_places=2)]
+InvoiceStatusLit = Literal["open", "closed", "paid"]
+
+
+class CardIn(Schema):
+    name: Name(80)
+    limit: NonNegativeMoney
+    closing_day: Day
+    due_day: Day
+    payment_account_id: int | None = None
+    color: Color = "#6c9ef8"
+    archived: bool = False
+
+
+class CardPatch(Schema):
+    name: Name(80) | None = None
+    limit: NonNegativeMoney | None = None
+    closing_day: Day | None = None
+    due_day: Day | None = None
+    payment_account_id: int | None = None
+    color: Color | None = None
+    archived: bool | None = None
+
+
+class InvoiceSummaryOut(Schema):
+    reference: str
+    closing_date: datetime.date
+    due_date: datetime.date
+    total: MoneyOut
+    status: InvoiceStatusLit
+    payment_id: int | None
+
+
+class InvoiceDetailOut(InvoiceSummaryOut):
+    card_id: int
+    items: list[TransactionOut]
+
+
+class CardOut(Schema):
+    id: int
+    name: str
+    limit: MoneyOut
+    closing_day: int
+    due_day: int
+    payment_account_id: int | None
+    color: str
+    archived: bool
+    limit_used: MoneyOut
+    current_invoice: InvoiceSummaryOut
+
+
+class PayInvoiceIn(Schema):
+    account_id: int | None = None
+    date: datetime.date | None = None

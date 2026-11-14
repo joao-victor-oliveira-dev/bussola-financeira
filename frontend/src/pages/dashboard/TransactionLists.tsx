@@ -42,8 +42,8 @@ export function TopExpenses({
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{tx.description}</span>
                 <span className="block truncate text-sm text-muted-foreground">
-                  {category?.name ?? 'Sem categoria'} · {lookups.accounts.get(tx.account_id)?.name}{' '}
-                  · {fmtDate(tx.date)}
+                  {category?.name ?? 'Sem categoria'} ·{' '}
+                  {lookups.accounts.get(tx.account_id ?? 0)?.name ?? 'Cartão'} · {fmtDate(tx.date)}
                 </span>
               </span>
               <Money value={tx.amount} tone="expense" className="font-semibold" />

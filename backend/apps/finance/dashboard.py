@@ -143,6 +143,7 @@ def top_expenses(user, month: str, limit: int = 5) -> QuerySet[Transaction]:
     return (
         Transaction.objects.filter(user=user, kind=TxKind.EXPENSE, date__range=(first, last))
         .order_by("-amount", "-date", "-id")
+        .select_related("invoice", "installment_plan")
         .prefetch_related("tags")[:limit]
     )
 
@@ -151,5 +152,6 @@ def pending(user, limit: int = 6) -> QuerySet[Transaction]:
     return (
         Transaction.objects.filter(user=user, status=TxStatus.PENDING)
         .order_by("date", "id")
+        .select_related("invoice", "installment_plan")
         .prefetch_related("tags")[:limit]
     )

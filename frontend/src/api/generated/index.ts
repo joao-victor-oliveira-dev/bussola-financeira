@@ -1,5 +1,6 @@
 export * from './accounts/accounts';
 export * from './auth/auth';
+export * from './cards/cards';
 export * from './categories/categories';
 export * from './dashboard/dashboard';
 export * from './infra/infra';

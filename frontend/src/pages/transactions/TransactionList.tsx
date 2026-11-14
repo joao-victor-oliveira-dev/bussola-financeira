@@ -84,7 +84,7 @@ function TransactionRow({
   lookups: Lookups
   actions: TxActions
 }) {
-  const account = lookups.accounts.get(tx.account_id)
+  const account = lookups.accounts.get(tx.account_id ?? 0) // compra no cartão não tem conta
   const category = tx.category_id ? lookups.categories.get(tx.category_id) : undefined
   const isTransfer = tx.kind === 'transfer'
   const subtitle = isTransfer

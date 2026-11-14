@@ -17,7 +17,7 @@ from apps.finance.services import InvalidTransaction, resolve_transaction
 router = Router(tags=["transactions"], auth=django_auth)
 
 # Campos que aceitam null explícito no PATCH (limpar o valor).
-NULLABLE = {"to_account_id", "category_id"}
+NULLABLE = {"to_account_id", "category_id", "account_id", "credit_card_id"}
 
 
 def _resolve(user, data: dict) -> dict:
@@ -38,7 +38,12 @@ def _save(tx: Transaction, fields: dict) -> Transaction:
 
 
 def _owned(user, pk: int) -> Transaction:
-    tx = Transaction.objects.filter(user=user, pk=pk).prefetch_related("tags").first()
+    tx = (
+        Transaction.objects.filter(user=user, pk=pk)
+        .select_related("invoice", "installment_plan")
+        .prefetch_related("tags")
+        .first()
+    )
     if tx is None:
         raise HttpError(404, NOT_FOUND)
     return tx
@@ -48,7 +53,9 @@ def _owned(user, pk: int) -> Transaction:
 def list_transactions(request, filters: Query[TransactionFilters]):
     qs = apply_filters(Transaction.objects.filter(user=request.auth), filters)
     start = (filters.page - 1) * filters.page_size
-    items = qs.prefetch_related("tags")[start : start + filters.page_size]
+    items = qs.select_related("invoice", "installment_plan").prefetch_related("tags")[
+        start : start + filters.page_size
+    ]
     count, sums = totals(qs)
     return {
         "items": list(items),
@@ -74,12 +81,15 @@ def get_transaction(request, transaction_id: int):
 @router.patch("/{transaction_id}", operation_id="transactionsUpdate", response=TransactionOut)
 def update_transaction(request, transaction_id: int, payload: TransactionPatch):
     tx = _owned(request.auth, transaction_id)
+    if tx.to_credit_card_id:
+        raise HttpError(409, "Este é o pagamento de uma fatura: desfaça pela tela do cartão.")
     current = {
         "kind": tx.kind,
         "amount": tx.amount,
         "date": tx.date,
         "description": tx.description,
         "account_id": tx.account_id,
+        "credit_card_id": tx.credit_card_id,
         "to_account_id": tx.to_account_id,
         "category_id": tx.category_id,
         "status": tx.status,
