@@ -13,6 +13,7 @@ from apps.finance.api.common import get_owned
 from apps.finance.importers.common import normalize_text
 from apps.finance.importers.service import (
     MAX_BYTES,
+    ImportConflict,
     ImportError_,
     confirm_batch,
     create_batch,
@@ -87,12 +88,19 @@ def create_import(
     account = Account.objects.filter(user=request.auth, pk=account_id).first()
     if account is None:
         raise HttpError(422, "Conta inválida.")
+    if account.archived:
+        raise HttpError(422, "Esta conta está arquivada.")
     if file.size and file.size > MAX_BYTES:
         raise HttpError(422, "O arquivo passa de 2 MB.")
     try:
         parsed_mapping = json.loads(mapping) if mapping else None
     except json.JSONDecodeError:
-        raise HttpError(422, "Mapeamento de colunas inválido.") from None
+        parsed_mapping = False
+    if parsed_mapping is not None and not (
+        isinstance(parsed_mapping, dict)
+        and all(isinstance(v, str) for v in parsed_mapping.values())
+    ):
+        raise HttpError(422, "Mapeamento de colunas inválido.")
     try:
         batch = create_batch(
             request.auth, account, file.name or "extrato", file.read(), preset, parsed_mapping
@@ -104,7 +112,7 @@ def create_import(
 
 @router.get("", operation_id="importsList", response=list[BatchOut])
 def list_imports(request):
-    return ImportBatch.objects.filter(user=request.auth)[:20]
+    return ImportBatch.objects.filter(user=request.auth).defer("raw")[:20]
 
 
 @router.get("/{batch_id}", operation_id="importsGet", response=BatchDetailOut)
@@ -117,15 +125,19 @@ def confirm_import(request, batch_id: int, payload: ConfirmIn):
     batch = get_owned(ImportBatch, request.auth, batch_id)
     try:
         created, learned = confirm_batch(batch, [r.dict() for r in payload.rows], payload.learn)
+    except ImportConflict as e:
+        raise HttpError(409, str(e)) from None
     except ImportError_ as e:
-        status = 409 if "já foi" in str(e) else 422
-        raise HttpError(status, str(e)) from None
+        raise HttpError(422, str(e)) from None
     return {"created": created, "rules_learned": learned}
 
 
 @router.delete("/{batch_id}", operation_id="importsDelete", response={204: None})
 def delete_import(request, batch_id: int):
-    undo_batch(get_owned(ImportBatch, request.auth, batch_id))
+    try:
+        undo_batch(get_owned(ImportBatch, request.auth, batch_id))
+    except ImportConflict as e:
+        raise HttpError(409, str(e)) from None
     return Status(204, None)
 
 

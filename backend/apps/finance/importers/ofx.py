@@ -3,7 +3,7 @@
 import re
 from datetime import date
 
-from apps.finance.importers.common import ParsedRow, ParseResult, parse_decimal
+from apps.finance.importers.common import ParsedRow, ParseResult, guess_decimal, parse_decimal
 
 _TRANSACTION = re.compile(r"<STMTTRN>(.*?)</STMTTRN>", re.S | re.I)
 
@@ -31,7 +31,7 @@ def parse_ofx(text: str) -> ParseResult:
             posted, amount_raw = _field(block, "DTPOSTED"), _field(block, "TRNAMT")
             if not posted or not amount_raw:
                 raise ValueError("transação sem data ou valor")
-            amount = parse_decimal(amount_raw, "," if "," in amount_raw else ".")
+            amount = parse_decimal(amount_raw, guess_decimal(amount_raw))
             if amount == 0:
                 continue
             name, memo = _field(block, "NAME"), _field(block, "MEMO")

@@ -44,6 +44,15 @@ def parse_decimal(raw: str, decimal: str = ",") -> Decimal:
     return value.quantize(Decimal("0.01"))
 
 
+def guess_decimal(raw: str) -> str:
+    """Separador decimal de um valor solto: o último entre ',' e '.' que aparece.
+
+    '1,234.56' → '.', '1.234,56' → ',', '-42,90' → ',', '7800.00' → '.'.
+    """
+    comma, dot = raw.rfind(","), raw.rfind(".")
+    return "," if comma > dot else "."
+
+
 def decode_bytes(data: bytes) -> str:
     """UTF-8 (com ou sem BOM); se falhar, Latin-1 (comum em extratos de bancos brasileiros)."""
     try:

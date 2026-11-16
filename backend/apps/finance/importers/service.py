@@ -27,7 +27,11 @@ HISTORY_LIMIT = 2000
 
 
 class ImportError_(Exception):  # noqa: N801 - não confundir com o ImportError do Python
-    """Erro de importação com mensagem para o usuário."""
+    """Erro de importação com mensagem para o usuário (422)."""
+
+
+class ImportConflict(ImportError_):
+    """Estado não permite a ação: já confirmada, fatura paga etc. (409)."""
 
 
 def _detect_format(filename: str) -> str:
@@ -106,19 +110,24 @@ def suggest_category(user, description: str, kind: str) -> Category | None:
     return _Suggester(user)(description, kind)
 
 
+def _fail(batch: ImportBatch, message: str) -> None:
+    batch.status, batch.error, batch.raw = ImportStatus.FAILED, message, ""
+    batch.save(update_fields=["status", "error", "raw", "parse_errors", "updated_at"])
+
+
 @transaction.atomic
 def process_batch(batch: ImportBatch) -> None:
     try:
         result = _parse(batch)
     except ValueError as e:
-        batch.status, batch.error = ImportStatus.FAILED, str(e)
-        batch.save(update_fields=["status", "error", "updated_at"])
+        _fail(batch, str(e))
+        return
+    except Exception:  # noqa: BLE001 - nunca deixar o lote preso em "processando"
+        _fail(batch, "Não foi possível ler o arquivo. Confira o formato e o mapeamento.")
         return
     if not result.rows:
-        batch.status = ImportStatus.FAILED
-        batch.error = "Nenhum lançamento encontrado no arquivo."
         batch.parse_errors = result.errors
-        batch.save(update_fields=["status", "error", "parse_errors", "updated_at"])
+        _fail(batch, "Nenhum lançamento encontrado no arquivo.")
         return
 
     account = batch.account
@@ -172,14 +181,15 @@ def confirm_batch(batch: ImportBatch, edits: list[dict], learn: bool) -> tuple[i
     """Cria os lançamentos. Linha sem edição: entra se não for duplicada, com a sugestão."""
     batch = ImportBatch.objects.select_for_update().get(pk=batch.pk)
     if batch.status != ImportStatus.PREVIEW:
-        raise ImportError_("Esta importação já foi confirmada ou não está pronta.")
+        raise ImportConflict("Esta importação já foi confirmada ou não está pronta.")
     by_id = {e["id"]: e for e in edits}
     category_ids = {e["category_id"] for e in edits if e.get("category_id")}
     categories = Category.objects.filter(user=batch.user, pk__in=category_ids).in_bulk()
     if len(categories) != len(category_ids):
         raise ImportError_("Categoria inválida.")
 
-    created, learned = [], 0
+    created: list[Transaction] = []
+    to_learn: dict[tuple[str, str], Category] = {}  # (tipo, padrão) → categoria (última vence)
     for row in batch.rows.select_related("suggested_category"):
         edit = by_id.get(row.id)
         include = edit["include"] if edit else not row.is_duplicate
@@ -205,18 +215,32 @@ def confirm_batch(batch: ImportBatch, edits: list[dict], learn: bool) -> tuple[i
             )
         )
         if learn and category and category != row.suggested_category:
-            CategorizationRule.objects.update_or_create(
-                user=batch.user,
-                kind=row.kind,
-                pattern=normalize_text(row.description),
-                defaults={"category": category, "priority": LEARNED_PRIORITY, "active": True},
-            )
-            learned += 1
+            to_learn[(row.kind, normalize_text(row.description))] = category
     Transaction.objects.bulk_create(created)
+    learned = _learn(batch.user, to_learn)
     batch.status = ImportStatus.DONE
     batch.created_count = len(created)
-    batch.save(update_fields=["status", "created_count", "updated_at"])
+    batch.raw = ""  # o conteúdo só servia para montar a prévia
+    batch.save(update_fields=["status", "created_count", "raw", "updated_at"])
     return len(created), learned
+
+
+def _learn(user, to_learn: dict[tuple[str, str], Category]) -> int:
+    """Cria/atualiza regras aprendidas. Regra feita à mão (prioridade menor) não é tocada."""
+    learned = 0
+    for (kind, pattern), category in to_learn.items():
+        rule = CategorizationRule.objects.filter(user=user, kind=kind, pattern=pattern).first()
+        if rule and rule.priority < LEARNED_PRIORITY:
+            continue  # manual: a escolha do usuário vale mais que o aprendizado
+        if rule:
+            rule.category, rule.active = category, True
+            rule.save(update_fields=["category", "active", "updated_at"])
+        else:
+            CategorizationRule.objects.create(
+                user=user, kind=kind, pattern=pattern, category=category, priority=LEARNED_PRIORITY
+            )
+        learned += 1
+    return learned
 
 
 @transaction.atomic
@@ -225,6 +249,10 @@ def undo_batch(batch: ImportBatch) -> None:
     # relê do banco: o objeto em mãos pode estar desatualizado (ex.: confirmado em outro request)
     batch = ImportBatch.objects.select_for_update().get(pk=batch.pk)
     if batch.status == ImportStatus.DONE:
+        if batch.transactions.filter(invoice__payment__isnull=False).exists():
+            raise ImportConflict(
+                "Há lançamentos desta importação em faturas pagas. Desfaça esses pagamentos antes."
+            )
         batch.transactions.all().delete()
         batch.status = ImportStatus.UNDONE
         batch.save(update_fields=["status", "updated_at"])
