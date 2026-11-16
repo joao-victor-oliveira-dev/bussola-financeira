@@ -34,5 +34,7 @@ services:
         sync: false # ex.: https://bussola-financeira.vercel.app
       - key: DEMO_ENABLED
         value: "True"
+      - key: SECURE_SSL_REDIRECT
+        value: "True"
       - key: CRON_SECRET
         generateValue: true

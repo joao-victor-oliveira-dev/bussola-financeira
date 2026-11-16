@@ -119,7 +119,8 @@ CSRF_COOKIE_SECURE = not DEBUG
 # Produção atrás de proxy HTTPS (Render, e o Vercel reescrevendo /api para ele).
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
+    # ligado no render.yaml; desligado por padrão para testes/CI (rodam com DEBUG=False em HTTP)
+    SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=False)
     SECURE_REDIRECT_EXEMPT = [r"^api/health$"]  # health check interno do Render é HTTP
     SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=3600)
     SECURE_CONTENT_TYPE_NOSNIFF = True
