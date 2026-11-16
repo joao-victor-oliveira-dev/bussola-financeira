@@ -3,7 +3,8 @@ import { useRouteError } from 'react-router'
 import { Button } from '@/components/ui/button'
 
 const RELOAD_KEY = 'bussola:chunk-reload'
-const CHUNK_ERROR = /dynamically imported module|Importing a module script failed|Loading chunk/i
+const CHUNK_ERROR =
+  /dynamically imported module|Importing a module script failed|Loading chunk|Unable to preload CSS/i
 
 function isChunkError(error: unknown): boolean {
   return error instanceof Error && CHUNK_ERROR.test(error.message)

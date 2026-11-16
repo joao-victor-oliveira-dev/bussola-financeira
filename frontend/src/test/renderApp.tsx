@@ -2,8 +2,12 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { createQueryClient } from '@/queryClient'
+import { preloadPages } from '@/preload'
 import { routes } from '@/router'
 import { ThemeProvider } from '@/theme/ThemeProvider'
+
+// Páginas são lazy: só os testes que renderizam o app pagam a transformação de todas.
+await preloadPages()
 
 type Reply = { status: number; body?: unknown }
 type Handler = (init: RequestInit) => Reply | Promise<Reply>

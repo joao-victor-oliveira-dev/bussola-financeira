@@ -78,6 +78,7 @@ export function CategoryBreakdown({
                   <span className="ml-auto tabular-nums">{formatBRL(s.total)}</span>
                   <span className="w-10 text-right text-xs text-muted-foreground tabular-nums">
                     {share.format(value / total)}
+                    <span className="sr-only"> das despesas</span>
                   </span>
                 </span>
                 <Bar ratio={value / max} />

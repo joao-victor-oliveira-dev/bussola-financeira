@@ -43,3 +43,8 @@ it('outro erro não recarrega sozinho', () => {
   expect(reload).not.toHaveBeenCalled()
   expect(screen.getByRole('alert')).toBeInTheDocument()
 })
+
+it('CSS de chunk que sumiu (preload do Vite) também recarrega sozinho', () => {
+  renderWith(new Error('Unable to preload CSS for /assets/BudgetPage-abc.css'))
+  expect(reload).toHaveBeenCalledTimes(1)
+})

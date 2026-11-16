@@ -1,11 +1,12 @@
 // Registro das páginas lazy, separado do router para o AppShell não importar o router (ciclo).
-const loaders: (() => Promise<unknown>)[] = []
+// Map por nome: reavaliar o router (HMR, testes) substitui em vez de duplicar.
+const loaders = new Map<string, () => Promise<unknown>>()
 
-export function registerPage(load: () => Promise<unknown>) {
-  loaders.push(load)
+export function registerPage(name: string, load: () => Promise<unknown>) {
+  loaders.set(name, load)
 }
 
 /** Baixa todas as páginas (o app chama quando o navegador fica ocioso; os testes, antes). */
 export function preloadPages() {
-  return Promise.all(loaders.map((load) => load()))
+  return Promise.all([...loaders.values()].map((load) => load()))
 }

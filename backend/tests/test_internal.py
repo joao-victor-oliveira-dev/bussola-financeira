@@ -50,3 +50,21 @@ def test_runs_daily_tasks_with_secret(settings):
 def test_get_not_allowed(settings):
     settings.CRON_SECRET = "x"
     assert Client().get(URL).status_code == 405
+
+
+def test_endpoint_delegates_to_celery_tasks(settings, monkeypatch):
+    """Uma lógica só: o endpoint chama as mesmas tarefas do beat."""
+    settings.CRON_SECRET = "s3gredo-longo"
+    called = []
+    monkeypatch.setattr(
+        "apps.finance.tasks.generate_all_recurring", lambda: called.append("rec") or 3
+    )
+    monkeypatch.setattr("apps.finance.tasks.reset_demo", lambda: called.append("demo") or True)
+    r = call("s3gredo-longo")
+    assert r.json() == {"recurring_created": 3, "demo_reset": True}
+    assert called == ["rec", "demo"]
+
+
+def test_internal_endpoint_not_in_public_schema(client):
+    schema = client.get("/api/openapi.json").json()
+    assert not any(path.startswith("/api/internal") for path in schema["paths"])

@@ -166,7 +166,7 @@ it('despesas por categoria em ordem e com detalhe das subcategorias', async () =
   setup()
   const card = await screen.findByRole('region', { name: 'Despesas por categoria' })
   const rows = await within(card).findAllByRole('button', { name: /R\$/ })
-  expect(rows.map((r) => r.textContent?.match(/^[^R]+/)?.[0].trim())).toEqual([
+  expect(rows.map((r) => r.textContent?.match(/^(.*?)\s*R\$/)?.[1])).toEqual([
     'Moradia',
     'Alimentação',
   ])
@@ -265,4 +265,12 @@ it('sem orçamento, o widget convida a criar', async () => {
   })
   const widget = await screen.findByRole('region', { name: 'Orçamento do mês' })
   expect(await within(widget).findByRole('link', { name: 'Definir orçamento' })).toBeInTheDocument()
+})
+
+it('categorias do painel dizem o que é o percentual para leitor de tela', async () => {
+  setup()
+  const card = await screen.findByRole('region', { name: 'Despesas por categoria' })
+  expect(
+    await within(card).findByRole('button', { name: /^Moradia.*das despesas$/ }),
+  ).toBeInTheDocument()
 })
