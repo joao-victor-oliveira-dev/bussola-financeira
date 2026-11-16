@@ -33,7 +33,7 @@ export function TopExpenses({
       onRetry={onRetry}
       empty={!loading && !data?.length}
       emptyText="Nenhuma despesa neste mês."
-      className="lg:col-span-3"
+      className="lg:col-span-2"
     >
       <ol className="divide-y divide-border">
         {data?.map((tx, i) => {

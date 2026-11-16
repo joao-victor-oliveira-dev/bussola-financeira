@@ -172,6 +172,188 @@
         "title": "AccountPatch",
         "type": "object"
       },
+      "BudgetIn": {
+        "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Limit"
+          },
+          "month": {
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "title": "Month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category_id",
+          "month",
+          "limit"
+        ],
+        "title": "BudgetIn",
+        "type": "object"
+      },
+      "BudgetItemOut": {
+        "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "category_name": {
+            "title": "Category Name",
+            "type": "string"
+          },
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "string"
+          },
+          "percent": {
+            "title": "Percent",
+            "type": "string"
+          },
+          "remaining": {
+            "title": "Remaining",
+            "type": "string"
+          },
+          "spent": {
+            "title": "Spent",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "warning",
+              "over"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "category_id",
+          "category_name",
+          "color",
+          "limit",
+          "spent",
+          "remaining",
+          "percent",
+          "status"
+        ],
+        "title": "BudgetItemOut",
+        "type": "object"
+      },
+      "BudgetOverviewOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/BudgetTotals"
+          },
+          "unbudgeted": {
+            "items": {
+              "$ref": "#/components/schemas/UnbudgetedOut"
+            },
+            "title": "Unbudgeted",
+            "type": "array"
+          }
+        },
+        "required": [
+          "month",
+          "items",
+          "totals",
+          "unbudgeted"
+        ],
+        "title": "BudgetOverviewOut",
+        "type": "object"
+      },
+      "BudgetPatch": {
+        "properties": {
+          "limit": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Limit"
+          }
+        },
+        "required": [
+          "limit"
+        ],
+        "title": "BudgetPatch",
+        "type": "object"
+      },
+      "BudgetTotals": {
+        "properties": {
+          "limit": {
+            "title": "Limit",
+            "type": "string"
+          },
+          "percent": {
+            "title": "Percent",
+            "type": "string"
+          },
+          "remaining": {
+            "title": "Remaining",
+            "type": "string"
+          },
+          "spent": {
+            "title": "Spent",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "warning",
+              "over"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "limit",
+          "spent",
+          "remaining",
+          "percent",
+          "status"
+        ],
+        "title": "BudgetTotals",
+        "type": "object"
+      },
       "CardIn": {
         "properties": {
           "archived": {
@@ -646,6 +828,45 @@
           "children"
         ],
         "title": "CategorySlice",
+        "type": "object"
+      },
+      "CopyIn": {
+        "properties": {
+          "from_month": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Month"
+          },
+          "to_month": {
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "title": "To Month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "to_month"
+        ],
+        "title": "CopyIn",
+        "type": "object"
+      },
+      "CopyOut": {
+        "properties": {
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "created"
+        ],
+        "title": "CopyOut",
         "type": "object"
       },
       "DaysParams": {
@@ -2206,6 +2427,34 @@
         "title": "TransactionPatch",
         "type": "object"
       },
+      "UnbudgetedOut": {
+        "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "category_name": {
+            "title": "Category Name",
+            "type": "string"
+          },
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "spent": {
+            "title": "Spent",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category_id",
+          "category_name",
+          "color",
+          "spent"
+        ],
+        "title": "UnbudgetedOut",
+        "type": "object"
+      },
       "UserOut": {
         "properties": {
           "email": {
@@ -2539,6 +2788,191 @@
         "summary": "Register",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/budgets": {
+      "get": {
+        "operationId": "budgetsOverview",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetOverviewOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Overview",
+        "tags": [
+          "budgets"
+        ]
+      },
+      "post": {
+        "operationId": "budgetsCreate",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetItemOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Create Budget",
+        "tags": [
+          "budgets"
+        ]
+      }
+    },
+    "/api/budgets/copy": {
+      "post": {
+        "operationId": "budgetsCopy",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopyOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Copy",
+        "tags": [
+          "budgets"
+        ]
+      }
+    },
+    "/api/budgets/{budget_id}": {
+      "delete": {
+        "operationId": "budgetsDelete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget_id",
+            "required": true,
+            "schema": {
+              "title": "Budget Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Delete Budget",
+        "tags": [
+          "budgets"
+        ]
+      },
+      "patch": {
+        "operationId": "budgetsUpdate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget_id",
+            "required": true,
+            "schema": {
+              "title": "Budget Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetItemOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Update Budget",
+        "tags": [
+          "budgets"
         ]
       }
     },

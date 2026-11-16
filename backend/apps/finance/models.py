@@ -297,3 +297,24 @@ class Transaction(Owned):
 
     def __str__(self):
         return f"{self.date} {self.description} {self.amount}"
+
+
+class Budget(Owned):
+    """Limite de gasto de uma categoria principal de despesa num mês."""
+
+    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="budgets")
+    month = models.CharField("mês", max_length=7)  # "YYYY-MM"
+    limit = models.DecimalField("limite", **MONEY)
+
+    class Meta:
+        verbose_name = "orçamento"
+        ordering = ["month", "category__name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "category", "month"], name="budget_unique_category_month"
+            ),
+            models.CheckConstraint(condition=Q(limit__gt=0), name="budget_limit_positive"),
+        ]
+
+    def __str__(self):
+        return f"{self.category} {self.month}"

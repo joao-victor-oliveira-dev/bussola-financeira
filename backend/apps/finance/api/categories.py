@@ -70,6 +70,9 @@ def update_category(request, category_id: int, payload: CategoryPatch):
     cat = get_owned(Category, request.auth, category_id)
     data = payload.dict(exclude_unset=True)
     if "parent_id" in data:
+        # orçamento é só de categoria principal: virar subcategoria o deixaria sempre zerado
+        if data["parent_id"] is not None and cat.budgets.exists():
+            raise HttpError(422, "Esta categoria tem orçamentos e precisa continuar principal.")
         _validate_parent(cat, data["parent_id"])
     if data.get("name") is not None:
         cat.name = data["name"]
@@ -86,5 +89,7 @@ def delete_category(request, category_id: int):
         raise HttpError(409, "Esta categoria tem lançamentos e não pode ser excluída.")
     if cat.children.exists():
         raise HttpError(409, "Exclua ou mova as subcategorias primeiro.")
+    if cat.budgets.exists():
+        raise HttpError(409, "Esta categoria tem orçamentos. Remova-os antes de excluir.")
     cat.delete()
     return Status(204, None)

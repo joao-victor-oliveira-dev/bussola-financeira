@@ -196,3 +196,14 @@ def test_demo_accounts_end_non_negative():
     seed_demo(user, today=TODAY)
     negatives = [(a.name, a.balance) for a in accounts_with_balance(user) if a.balance < 0]
     assert negatives == []
+
+
+def test_demo_budgets_show_all_three_states():
+    from apps.finance.budgets import budget_overview
+
+    user = UserFactory()
+    seed_demo(user, today=TODAY)
+    statuses = {i["status"] for i in budget_overview(user, "2026-11")["items"]}
+    assert {"ok", "warning", "over"} <= statuses
+    seed_demo(user, today=TODAY, reset=True)  # reset não esbarra no PROTECT da categoria
+    assert budget_overview(user, "2026-11")["items"]

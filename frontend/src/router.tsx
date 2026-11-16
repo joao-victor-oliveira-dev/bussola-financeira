@@ -2,9 +2,9 @@ import { Navigate, type RouteObject } from 'react-router'
 import { RedirectIfAuth, RequireAuth } from '@/auth/guards'
 import { AppShell } from '@/layout/AppShell'
 import { AccountsPage } from '@/pages/accounts/AccountsPage'
+import { BudgetPage } from '@/pages/budget/BudgetPage'
 import { CardsPage } from '@/pages/cards/CardsPage'
 import { CategoriesPage } from '@/pages/categories/CategoriesPage'
-import { ComingSoonPage } from '@/pages/ComingSoonPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RecurringPage } from '@/pages/recurring/RecurringPage'
@@ -31,7 +31,7 @@ export const routes: RouteObject[] = [
           { path: '/categorias', element: <CategoriesPage /> },
           { path: '/recorrencias', element: <RecurringPage /> },
           { path: '/cartoes', element: <CardsPage /> },
-          { path: '/orcamento', element: <ComingSoonPage title="Orçamento" /> },
+          { path: '/orcamento', element: <BudgetPage /> },
         ],
       },
     ],

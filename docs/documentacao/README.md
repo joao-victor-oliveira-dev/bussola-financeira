@@ -12,7 +12,7 @@ Cada página é criada quando a área é construída e atualizada a cada mudanç
 | Dashboard e agregações | [`dashboard.md`](dashboard.md) | ativo (Fase 3) |
 | Cartões, faturas e parcelamentos | [`cartoes.md`](cartoes.md) | ativo (Fase 4) |
 | Recorrências e tarefas Celery | [`recorrencias.md`](recorrencias.md) | ativo (Fase 4) |
-| Orçamento | `orcamento.md` | planejado (Fase 5) |
+| Orçamento | [`orcamento.md`](orcamento.md) | ativo (Fase 5) |
 | Importação OFX/CSV | `importacao.md` | planejado (Fase 6) |
 
 ## Modelo de página
