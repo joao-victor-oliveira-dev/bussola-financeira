@@ -25,7 +25,9 @@ O usuário define um limite mensal de gasto por categoria principal de despesa e
 - **Ordem:** pelo maior percentual primeiro.
 - **Copiar do mês anterior** (ou de `from_month`): cria só os orçamentos que ainda não existem no mês de destino. Nunca sobrescreve um limite editado. Rodar duas vezes cria 0 na segunda.
 - **Gastos sem orçamento:** categorias principais com despesa no mês e sem orçamento. A tela oferece "Definir limite".
-- **Excluir uma categoria com orçamento:** não é possível (PROTECT). Remova o orçamento antes.
+- **Categoria com orçamento:** excluir → 409, e ela não pode virar subcategoria (422). Remova o orçamento antes.
+- **Copiar** ignora orçamentos que deixaram de ser válidos (a categoria virou subcategoria).
+- **`totals`** traz `percent` e `status` calculados no servidor, com a mesma regra dos itens. O front não recalcula.
 
 ## Endpoints
 | Rota | Notas |
@@ -38,7 +40,7 @@ O usuário define um limite mensal de gasto por categoria principal de despesa e
 
 ## Telas
 - **Orçamento** (`/orcamento?mes=`):
-  - Total do mês com uma barra geral e o texto "Faltam R$ X" ou "R$ X acima".
+  - Total do mês com uma barra geral e o texto "Faltam R$ X", "Limite atingido" ou "R$ X acima".
   - Cartões em formato "meter list": ponto de cor da categoria, %, barra, "R$ gasto de R$ limite", rótulo de situação com ícone e o restante.
   - Clicar edita ou remove.
   - "Novo orçamento" lista só as principais de despesa sem orçamento no mês.
@@ -56,3 +58,4 @@ Orçamentos dos 3 últimos meses para 8 categorias. No mês atual há uma estour
 
 ## Histórico de mudanças
 - 2026-11-15: criação (Fase 5).
+- 2026-11-16: revisão da Fase 5. Categoria com orçamento protegida (409/422), cópia só de válidos, `totals` com `percent`/`status`, "Limite atingido", `invalidateBudgets` (o catálogo também invalida) e POST/PATCH calculando só o item.
