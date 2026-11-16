@@ -1,9 +1,10 @@
 import { motion, useReducedMotion } from 'motion/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router'
 import { BottomNav } from '@/layout/BottomNav'
 import { Sidebar } from '@/layout/Sidebar'
 import { Topbar } from '@/layout/Topbar'
+import { preloadPages } from '@/preload'
 
 const COLLAPSE_KEY = 'bussola:sidebar-collapsed'
 
@@ -27,6 +28,12 @@ export function AppShell() {
   const [collapsed, setCollapsed] = useState(readCollapsed)
   const { pathname } = useLocation()
   const reduce = useReducedMotion()
+
+  // Depois do primeiro desenho, baixa as outras páginas no tempo ocioso: navegar fica instantâneo.
+  useEffect(() => {
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1500))
+    idle(() => void preloadPages().catch(() => {}))
+  }, [])
 
   const toggle = () => {
     storeCollapsed(!collapsed)
