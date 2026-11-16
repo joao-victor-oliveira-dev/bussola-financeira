@@ -14,7 +14,7 @@ import { Field, NativeSelect } from '@/components/forms'
 import { MoneyInput } from '@/components/MoneyInput'
 import { SubmitButton } from '@/components/SubmitButton'
 import { Button } from '@/components/ui/button'
-import { errorMessage } from '@/finance/cache'
+import { errorMessage, invalidateBudgets } from '@/finance/cache'
 import { formatMonth } from '@/lib/dates'
 import { maskBRLInput, parseBRL } from '@/lib/money'
 
@@ -75,8 +75,7 @@ function BudgetForm({
   const [error, setError] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
 
-  const refresh = () =>
-    client.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith('/api/budgets') })
+  const refresh = () => invalidateBudgets(client)
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

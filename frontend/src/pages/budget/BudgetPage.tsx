@@ -11,7 +11,7 @@ import { Money } from '@/components/Money'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { errorMessage } from '@/finance/cache'
+import { errorMessage, invalidateBudgets } from '@/finance/cache'
 import { parseMonth } from '@/lib/dates'
 import { formatBRL } from '@/lib/money'
 import { cn } from '@/lib/utils'
@@ -21,7 +21,9 @@ import { MonthSwitcher } from '@/pages/transactions/TransactionFilters'
 
 function remainingText(item: Pick<BudgetItemOut, 'remaining'>): string {
   const r = Number(item.remaining)
-  return r >= 0 ? `Faltam ${formatBRL(item.remaining)}` : `${formatBRL(-r)} acima`
+  if (r > 0) return `Faltam ${formatBRL(item.remaining)}`
+  if (r === 0) return 'Limite atingido'
+  return `${formatBRL(-r)} acima`
 }
 
 export function BudgetPage() {
@@ -42,12 +44,6 @@ export function BudgetPage() {
   const available = categories
     .filter((c) => c.kind === 'expense' && c.parent_id === null && !budgeted.has(c.id))
     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
-  const totalPercent =
-    data && Number(data.totals.limit) > 0
-      ? String((Number(data.totals.spent) / Number(data.totals.limit)) * 100)
-      : '0'
-  const totalStatus =
-    Number(totalPercent) >= 100 ? 'over' : Number(totalPercent) >= 80 ? 'warning' : 'ok'
 
   const openNew = (categoryId: number | null = null) =>
     setDialog({ open: true, budget: null, categoryId })
@@ -55,9 +51,7 @@ export function BudgetPage() {
   const onCopy = async () => {
     try {
       const { created } = await copy.mutateAsync({ data: { to_month: month } })
-      await client.invalidateQueries({
-        predicate: (q) => String(q.queryKey[0]).startsWith('/api/budgets'),
-      })
+      await invalidateBudgets(client)
       if (created) toast.success(`${created} orçamento(s) copiado(s) do mês anterior.`)
       else toast.info('O mês anterior não tem orçamentos para copiar.')
     } catch (err) {
@@ -127,7 +121,7 @@ export function BudgetPage() {
                 {remainingText(data.totals)}
               </span>
             </div>
-            <BudgetBar percent={totalPercent} status={totalStatus} />
+            <BudgetBar percent={data.totals.percent} status={data.totals.status} />
           </section>
 
           <ul className="grid gap-3 sm:grid-cols-2">
@@ -202,7 +196,9 @@ export function BudgetPage() {
         month={month}
         available={
           dialog.categoryId
-            ? categories.filter((c) => c.id === dialog.categoryId || available.includes(c))
+            ? categories
+                .filter((c) => c.id === dialog.categoryId || available.includes(c))
+                .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
             : available
         }
         onOpenChange={(open) => setDialog((d) => ({ ...d, open }))}

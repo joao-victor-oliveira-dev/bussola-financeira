@@ -30,7 +30,13 @@ const item = (over: Record<string, unknown>) => ({
 const overview = (items: unknown[], unbudgeted: unknown[] = []) => ({
   month: '2026-11',
   items,
-  totals: { limit: '3000.00', spent: '2100.00', remaining: '900.00' },
+  totals: {
+    limit: '3000.00',
+    spent: '2100.00',
+    remaining: '900.00',
+    percent: '70.0',
+    status: 'ok',
+  },
   unbudgeted,
 })
 
@@ -142,4 +148,27 @@ it('editar o limite envia PATCH', async () => {
   await userEvent.type(limit, '120000')
   await userEvent.click(within(dialog).getByRole('button', { name: 'Salvar alterações' }))
   await waitFor(() => expect(sent).toEqual({ limit: '1200.00' }))
+})
+
+it('limite exatamente atingido não diz "faltam R$ 0,00"', async () => {
+  setup(overview([item({ spent: '1000.00', remaining: '0.00', percent: '100.0', status: 'over' })]))
+  const row = await screen.findByRole('listitem', { name: /Alimentação/ })
+  expect(row).toHaveTextContent('Limite atingido')
+  expect(row).not.toHaveTextContent('Faltam')
+})
+
+it('definir limite pelo gasto sem orçamento mantém a ordem alfabética', async () => {
+  setup(
+    overview(
+      [item({})],
+      [{ category_id: 30, category_name: 'Lazer', color: '#b88cf2', spent: '120.00' }],
+    ),
+  )
+  const section = await screen.findByRole('region', { name: 'Gastos sem orçamento' })
+  await userEvent.click(within(section).getByRole('button', { name: 'Definir limite para Lazer' }))
+  const dialog = await screen.findByRole('dialog')
+  const options = within(within(dialog).getByLabelText('Categoria'))
+    .getAllByRole('option')
+    .map((o) => o.textContent)
+  expect(options).toEqual(['Escolha…', 'Lazer', 'Moradia'])
 })

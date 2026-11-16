@@ -9,6 +9,12 @@ const invalidateDashboard = (client: QueryClient) =>
     predicate: (q) => String(q.queryKey[0]).startsWith('/api/dashboard/'),
   })
 
+/** Orçamentos: resumo de qualquer mês (gasto, nomes e cores das categorias). */
+export const invalidateBudgets = (client: QueryClient) =>
+  client.invalidateQueries({
+    predicate: (q) => String(q.queryKey[0]).startsWith('/api/budgets'),
+  })
+
 /** Lançamentos mudam saldos e o painel: invalida tudo que depende deles. */
 export function invalidateMoney(client: QueryClient) {
   return Promise.all([
@@ -17,10 +23,7 @@ export function invalidateMoney(client: QueryClient) {
     invalidateDashboard(client),
     // compras no cartão mudam limite usado e totais de fatura
     client.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith('/api/cards') }),
-    // e o gasto de cada orçamento
-    client.invalidateQueries({
-      predicate: (q) => String(q.queryKey[0]).startsWith('/api/budgets'),
-    }),
+    invalidateBudgets(client), // e o gasto de cada orçamento
   ])
 }
 
@@ -29,6 +32,7 @@ export function invalidateCatalog(client: QueryClient) {
     client.invalidateQueries({ queryKey: getCategoriesListQueryKey() }),
     client.invalidateQueries({ queryKey: getTagsListQueryKey() }),
     invalidateDashboard(client), // o painel mostra nomes, cores e agrupamento das categorias
+    invalidateBudgets(client),
   ])
 }
 
