@@ -5,6 +5,7 @@ import { AccountsPage } from '@/pages/accounts/AccountsPage'
 import { BudgetPage } from '@/pages/budget/BudgetPage'
 import { CardsPage } from '@/pages/cards/CardsPage'
 import { CategoriesPage } from '@/pages/categories/CategoriesPage'
+import { ImportPage } from '@/pages/import/ImportPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RecurringPage } from '@/pages/recurring/RecurringPage'
@@ -30,6 +31,7 @@ export const routes: RouteObject[] = [
           { path: '/contas', element: <AccountsPage /> },
           { path: '/categorias', element: <CategoriesPage /> },
           { path: '/recorrencias', element: <RecurringPage /> },
+          { path: '/importar', element: <ImportPage /> },
           { path: '/cartoes', element: <CardsPage /> },
           { path: '/orcamento', element: <BudgetPage /> },
         ],

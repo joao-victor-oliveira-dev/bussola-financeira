@@ -207,3 +207,18 @@ def test_demo_budgets_show_all_three_states():
     assert {"ok", "warning", "over"} <= statuses
     seed_demo(user, today=TODAY, reset=True)  # reset não esbarra no PROTECT da categoria
     assert budget_overview(user, "2026-11")["items"]
+
+
+def test_demo_rules_suggest_categories_for_sample_statement():
+    from pathlib import Path
+
+    from apps.finance.importers.service import create_batch
+
+    user = UserFactory()
+    seed_demo(user, today=TODAY)
+    sample = Path(__file__).resolve().parents[4] / "docs" / "exemplos" / "extrato-exemplo.csv"
+    account = Account.objects.get(user=user, name="Nubank")
+    batch = create_batch(user, account, sample.name, sample.read_bytes(), "auto", None)
+    suggested = {r.description: r.suggested_category for r in batch.rows.all()}
+    assert suggested["Uber *Trip"].name == "Transporte"
+    assert suggested["Compra no débito - Supermercado Bom Preço"].name == "Mercado"

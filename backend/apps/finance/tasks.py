@@ -20,3 +20,16 @@ def reset_demo() -> bool:
 
     seed_demo(get_demo_user(), reset=True)
     return True
+
+
+@shared_task(name="finance.process_import")
+def process_import(batch_id: int) -> str:
+    """Lê o extrato e monta a prévia (duplicados e categoria sugerida)."""
+    from apps.finance.importers.service import process_batch
+    from apps.finance.models import ImportBatch
+
+    batch = ImportBatch.objects.filter(pk=batch_id).first()
+    if batch is None:
+        return "missing"
+    process_batch(batch)
+    return batch.status

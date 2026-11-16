@@ -79,3 +79,14 @@ it('resposta não-JSON (ex.: 502 do proxy) vira ApiError legível', async () => 
     detail: 'Erro no servidor. Tente novamente.',
   })
 })
+
+it('upload (FormData) não força Content-Type: o navegador põe o boundary', async () => {
+  const fetchMock = mockFetch(201, { id: 1 })
+  const body = new FormData()
+  body.append('account_id', '1')
+  await customFetch('/api/imports', { method: 'POST', body })
+  const init = fetchMock.mock.calls[0][1] as RequestInit
+  const headers = new Headers(init.headers)
+  expect(headers.get('Content-Type')).toBeNull()
+  expect(headers.get('X-CSRFToken')).toBe('abc')
+})
