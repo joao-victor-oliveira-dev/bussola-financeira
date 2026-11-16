@@ -140,7 +140,7 @@ it('editar o limite envia PATCH', async () => {
     },
   })
   await userEvent.click(
-    await screen.findByRole('button', { name: 'Editar orçamento de Alimentação' }),
+    await screen.findByRole('button', { name: /^Editar orçamento de Alimentação/ }),
   )
   const dialog = await screen.findByRole('dialog')
   const limit = within(dialog).getByLabelText('Limite do mês')

@@ -54,7 +54,6 @@ export function CategoryBreakdown({
             <li key={s.id ?? 'none'}>
               <button
                 type="button"
-                aria-label={`${s.name}: ${formatBRL(s.total)}, ${share.format(value / total)} das despesas`}
                 aria-expanded={canExpand ? expanded : undefined}
                 disabled={!canExpand}
                 onClick={() => setOpen(expanded ? 'none' : s.id)}

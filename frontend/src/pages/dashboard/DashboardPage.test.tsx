@@ -166,7 +166,7 @@ it('despesas por categoria em ordem e com detalhe das subcategorias', async () =
   setup()
   const card = await screen.findByRole('region', { name: 'Despesas por categoria' })
   const rows = await within(card).findAllByRole('button', { name: /R\$/ })
-  expect(rows.map((r) => r.getAttribute('aria-label')?.split(':')[0])).toEqual([
+  expect(rows.map((r) => r.textContent?.match(/^[^R]+/)?.[0].trim())).toEqual([
     'Moradia',
     'Alimentação',
   ])

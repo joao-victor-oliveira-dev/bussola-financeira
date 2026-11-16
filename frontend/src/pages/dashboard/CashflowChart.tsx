@@ -57,7 +57,13 @@ export function CashflowChart({
     >
       <div className="min-h-64 flex-1" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={rows} barGap={2} barCategoryGap="28%" margin={{ left: 4, right: 4 }}>
+          <BarChart
+            accessibilityLayer={false}
+            data={rows}
+            barGap={2}
+            barCategoryGap="28%"
+            margin={{ left: 4, right: 4 }}
+          >
             <CartesianGrid vertical={false} stroke="var(--border)" />
             <XAxis
               dataKey="month"
