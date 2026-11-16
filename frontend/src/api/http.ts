@@ -34,7 +34,9 @@ export async function customFetch<T>(url: string, init: RequestInit = {}): Promi
     const token = readCookie('csrftoken')
     if (token) headers.set('X-CSRFToken', token)
   }
-  if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+  // FormData (upload): o navegador define o Content-Type com o boundary.
+  if (init.body && !(init.body instanceof FormData) && !headers.has('Content-Type'))
+    headers.set('Content-Type', 'application/json')
 
   const response = await fetch(url, { ...init, method, headers, credentials: 'include' })
   if (response.status === 204) return undefined as T

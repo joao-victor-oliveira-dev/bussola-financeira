@@ -38,7 +38,7 @@ export function NetWorthChart({
     >
       <div className="min-h-56 flex-1" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={rows} margin={{ left: 4, right: 4, top: 4 }}>
+          <AreaChart accessibilityLayer={false} data={rows} margin={{ left: 4, right: 4, top: 4 }}>
             <defs>
               <linearGradient id="networth-fill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.28} />

@@ -32,3 +32,10 @@ it('mudar lançamentos também invalida cartões (limite e fatura)', async () =>
   expect(c.getQueryState(['/api/cards'])?.isInvalidated).toBe(true)
   expect(c.getQueryState(['/api/cards/3/invoices/2026-11'])?.isInvalidated).toBe(true)
 })
+
+it('mudar categorias invalida o orçamento (nome e cor)', async () => {
+  const c = new QueryClient()
+  c.setQueryData(['/api/budgets', { month: '2026-11' }], {})
+  await invalidateCatalog(c)
+  expect(c.getQueryState(['/api/budgets', { month: '2026-11' }])?.isInvalidated).toBe(true)
+})

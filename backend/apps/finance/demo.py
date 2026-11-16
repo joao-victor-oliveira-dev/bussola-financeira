@@ -13,6 +13,8 @@ from apps.finance.dashboard import shift_month
 from apps.finance.installments import create_plan
 from apps.finance.models import (
     Account,
+    Budget,
+    CategorizationRule,
     Category,
     CreditCard,
     InstallmentPlan,
@@ -67,6 +69,29 @@ PLANS = [
     ("Geladeira", "3200.00", 6, 2, 20, "Moradia"),
 ]
 
+# Limites mensais por categoria principal (3 últimos meses). No mês atual, Moradia fica perto
+# do limite e Assinaturas estoura: a tela de Orçamento mostra as três situações.
+BUDGETS = {
+    "Moradia": "3500.00",
+    "Alimentação": "2400.00",
+    "Transporte": "2000.00",
+    "Saúde": "900.00",
+    "Lazer": "700.00",
+    "Compras": "2000.00",
+    "Assinaturas": "70.00",
+    "Educação": "500.00",
+}
+
+# Regras de categorização prontas: a prévia de importação já chega com sugestões
+# (docs/exemplos/extrato-exemplo.csv usa essas descrições).
+RULES = [
+    ("uber", "Transporte"),
+    ("supermercado", "Mercado"),
+    ("padaria", "Mercado"),
+    ("farmacia", "Saúde"),
+    ("restaurante", "Restaurantes"),
+]
+
 TRIP = [  # mês de viagem (4 meses atrás), com a tag "viagem"
     ("Passagens aéreas", "Lazer", "1890.00"),
     ("Hotel", "Lazer", "2340.00"),
@@ -93,9 +118,12 @@ def seed_demo(user, today: datetime.date | None = None, reset: bool = False) -> 
     tags e categorias renomeadas, e o seed não pode depender desse estado.
     """
     today = today or datetime.date.today()
+    # Trava o usuário da demo: um reset concorrente (cron + retry) espera em vez de colidir.
+    User.objects.select_for_update().filter(pk=user.pk).first()
     if not reset and Account.objects.filter(user=user).exists():
         return
     Transaction.objects.filter(user=user).delete()
+    Budget.objects.filter(user=user).delete()  # PROTECT na categoria
     InstallmentPlan.objects.filter(user=user).delete()
     RecurringRule.objects.filter(user=user).delete()
     CreditCard.objects.filter(user=user).delete()  # faturas vão junto (CASCADE)
@@ -243,6 +271,24 @@ def seed_demo(user, today: datetime.date | None = None, reset: bool = False) -> 
 
     for rule in rules.values():
         generate(rule, today)  # próximas ocorrências pendentes (até 60 dias)
+
+    CategorizationRule.objects.bulk_create(
+        CategorizationRule(
+            user=user, pattern=pattern, category=cats[("expense", cat)], kind="expense"
+        )
+        for pattern, cat in RULES
+    )
+
+    Budget.objects.bulk_create(
+        Budget(
+            user=user,
+            category=cats[("expense", name)],
+            month=f"{y:04d}-{m:02d}",
+            limit=Decimal(limit),
+        )
+        for y, m in months[-3:]
+        for name, limit in BUDGETS.items()
+    )
 
 
 class DemoUnavailable(Exception):

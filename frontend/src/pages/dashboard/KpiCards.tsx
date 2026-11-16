@@ -37,6 +37,7 @@ function Kpi({
   delta,
   hint,
   emphasis,
+  wide,
 }: {
   label: string
   value: number | null
@@ -46,6 +47,8 @@ function Kpi({
   delta?: Delta
   hint: string
   emphasis?: boolean
+  /** No celular ocupa a linha inteira (evita card sozinho em meia linha). */
+  wide?: boolean
 }) {
   const animated = useCountUp(value ?? 0)
   const Arrow = delta?.up ? ArrowUpRight : ArrowDownRight
@@ -55,7 +58,8 @@ function Kpi({
       aria-label={label}
       className={cn(
         'flex min-w-0 flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:p-5',
-        emphasis && 'col-span-2 bg-surface-raised lg:col-span-1',
+        emphasis && 'bg-surface-raised',
+        (emphasis || wide) && 'col-span-2 lg:col-span-1',
       )}
     >
       <p className="text-sm text-muted-foreground">{label}</p>
@@ -146,6 +150,7 @@ export function KpiCards({
       />
       <Kpi
         label="Taxa de poupança"
+        wide
         value={data.savings_rate === null ? null : Number(data.savings_rate)}
         format={rateFmt}
         delta={points(data.savings_rate, data.previous.savings_rate)}

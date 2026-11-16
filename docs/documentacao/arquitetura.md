@@ -48,3 +48,8 @@ Veja "Como rodar" no `README.md`.
 - 2026-11-13: fluxo de branches — trabalho em `feat/*`/`fix/*` a partir de `develop`, PRs para `develop`, `main` recebe `develop` sob demanda; CI roda em push para `main` e `develop` e em todo PR.
 - 2026-11-13: uv substituído por pip + `requirements.txt` (produção) e `requirements-dev.txt` (desenvolvimento).
 - 2026-11-14: Celery + Redis (Fase 4). O docker-compose ganha `redis`, `worker` e `beat`; sem `CELERY_BROKER_URL` as tarefas rodam na hora (eager). Detalhes em `recorrencias.md`.
+- 2026-11-16: Fase 7, produção e deploy.
+  - `render.yaml` (API + Postgres) e `frontend/vercel.json` (rewrite de `/api` para o Render, mesma origem, cache imutável para `/assets`).
+  - WhiteNoise para os estáticos do admin. Com `DEBUG=False`, valem `SECURE_PROXY_SSL_HEADER`, redirecionamento HTTPS (com exceção de `/api/health`) e HSTS.
+  - Tarefas diárias em produção via `POST /api/internal/daily` (`X-Cron-Secret`, comparação em tempo constante, 404 sem `CRON_SECRET`), chamado por `.github/workflows/daily.yml` às 3h de Brasília.
+- 2026-11-16: revisão da Fase 7. O endpoint diário chama as tarefas do Celery (uma lógica só) e fica fora do OpenAPI. Gunicorn com `--timeout 120`. O reset da demo trava o usuário (`select_for_update`), então repetir a chamada é seguro. No Vercel, o fallback do SPA não cobre `/assets/` (chunk inexistente → 404).

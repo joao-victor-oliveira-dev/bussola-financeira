@@ -196,3 +196,45 @@ def test_demo_accounts_end_non_negative():
     seed_demo(user, today=TODAY)
     negatives = [(a.name, a.balance) for a in accounts_with_balance(user) if a.balance < 0]
     assert negatives == []
+
+
+def test_demo_budgets_show_all_three_states():
+    from apps.finance.budgets import budget_overview
+
+    user = UserFactory()
+    seed_demo(user, today=TODAY)
+    statuses = {i["status"] for i in budget_overview(user, "2026-11")["items"]}
+    assert {"ok", "warning", "over"} <= statuses
+    seed_demo(user, today=TODAY, reset=True)  # reset não esbarra no PROTECT da categoria
+    assert budget_overview(user, "2026-11")["items"]
+
+
+def test_demo_rules_suggest_categories_for_sample_statement():
+    from pathlib import Path
+
+    from apps.finance.importers.service import create_batch
+
+    user = UserFactory()
+    seed_demo(user, today=TODAY)
+    sample = Path(__file__).resolve().parents[4] / "docs" / "exemplos" / "extrato-exemplo.csv"
+    account = Account.objects.get(user=user, name="Nubank")
+    batch = create_batch(user, account, sample.name, sample.read_bytes(), "auto", None)
+    suggested = {r.description: r.suggested_category for r in batch.rows.all()}
+    assert suggested["Uber *Trip"].name == "Transporte"
+    assert suggested["Compra no débito - Supermercado Bom Preço"].name == "Mercado"
+
+
+def test_seed_demo_locks_the_user_row(monkeypatch):
+    """Duas chamadas simultâneas (cron + retry) se enfileiram em vez de colidir."""
+    from django.db.models.query import QuerySet
+
+    calls = []
+    original = QuerySet.select_for_update
+
+    def spy(self, *a, **kw):
+        calls.append(self.model.__name__)
+        return original(self, *a, **kw)
+
+    monkeypatch.setattr(QuerySet, "select_for_update", spy)
+    seed_demo(UserFactory(), today=TODAY, reset=True)
+    assert "User" in calls

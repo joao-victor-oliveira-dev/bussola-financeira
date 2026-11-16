@@ -4,6 +4,8 @@
 DJANGO_SETTINGS_MODULE = "config.settings"
 pythonpath = ["."]
 addopts = "-q"
+# STATIC_ROOT só existe após o collectstatic (deploy); nos testes o aviso do WhiteNoise é ruído.
+filterwarnings = ["ignore:No directory at:UserWarning"]
 
 [tool.ruff]
 line-length = 100

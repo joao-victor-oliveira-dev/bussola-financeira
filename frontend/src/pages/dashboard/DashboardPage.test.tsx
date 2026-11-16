@@ -63,6 +63,32 @@ const tx = (over: Record<string, unknown>) => ({
   ...over,
 })
 
+const budgetItem = (id: number, name: string, percent: string, status: string) => ({
+  id,
+  category_id: id,
+  category_name: name,
+  color: '#2fb5a2',
+  limit: '1000.00',
+  spent: String(Number(percent) * 10) + '.00',
+  remaining: '0.00',
+  percent,
+  status,
+})
+
+const budgets = {
+  month: '2026-11',
+  items: [
+    budgetItem(1, 'Assinaturas', '111.0', 'over'),
+    budgetItem(2, 'Moradia', '95.0', 'warning'),
+    budgetItem(3, 'Lazer', '70.0', 'ok'),
+    budgetItem(4, 'Saúde', '40.0', 'ok'),
+    budgetItem(5, 'Compras', '30.0', 'ok'),
+    budgetItem(6, 'Educação', '10.0', 'ok'),
+  ],
+  totals: { limit: '6000.00', spent: '3560.00', remaining: '2440.00' },
+  unbudgeted: [],
+}
+
 function setup(path = '/', extra = {}) {
   return renderApp(path, {
     'GET /api/auth/me': () => ({ status: 200, body: joao }),
@@ -75,6 +101,7 @@ function setup(path = '/', extra = {}) {
       status: 200,
       body: [tx({ id: 7, description: 'Aluguel', amount: '2000.00' })],
     }),
+    'GET /api/budgets': () => ({ status: 200, body: budgets }),
     'GET /api/dashboard/invoices-due': () => ({
       status: 200,
       body: [
@@ -139,7 +166,7 @@ it('despesas por categoria em ordem e com detalhe das subcategorias', async () =
   setup()
   const card = await screen.findByRole('region', { name: 'Despesas por categoria' })
   const rows = await within(card).findAllByRole('button', { name: /R\$/ })
-  expect(rows.map((r) => r.getAttribute('aria-label')?.split(':')[0])).toEqual([
+  expect(rows.map((r) => r.textContent?.match(/^(.*?)\s*R\$/)?.[1])).toEqual([
     'Moradia',
     'Alimentação',
   ])
@@ -209,4 +236,41 @@ it('próximos vencimentos mostra a fatura com atalho para pagar', async () => {
   expect(nbsp(upcoming.textContent)).toContain('R$ 1.250,40')
   const pay = within(upcoming).getByRole('link', { name: 'Pagar fatura Roxinho' })
   expect(pay).toHaveAttribute('href', '/cartoes?cartao=3&fatura=2026-11')
+})
+
+it('orçamento do mês mostra as 5 categorias mais apertadas', async () => {
+  setup()
+  const widget = await screen.findByRole('region', { name: 'Orçamento do mês' })
+  const rows = await within(widget).findAllByRole('listitem')
+  expect(rows.map((r) => r.getAttribute('aria-label')?.split(':')[0])).toEqual([
+    'Assinaturas',
+    'Moradia',
+    'Lazer',
+    'Saúde',
+    'Compras',
+  ])
+  expect(rows[0]).toHaveTextContent('Estourou')
+  expect(within(widget).getByRole('link', { name: 'Ver orçamento' })).toHaveAttribute(
+    'href',
+    expect.stringContaining('/orcamento'),
+  )
+})
+
+it('sem orçamento, o widget convida a criar', async () => {
+  setup('/', {
+    'GET /api/budgets': () => ({
+      status: 200,
+      body: { ...budgets, items: [], totals: { limit: '0.00', spent: '0.00', remaining: '0.00' } },
+    }),
+  })
+  const widget = await screen.findByRole('region', { name: 'Orçamento do mês' })
+  expect(await within(widget).findByRole('link', { name: 'Definir orçamento' })).toBeInTheDocument()
+})
+
+it('categorias do painel dizem o que é o percentual para leitor de tela', async () => {
+  setup()
+  const card = await screen.findByRole('region', { name: 'Despesas por categoria' })
+  expect(
+    await within(card).findByRole('button', { name: /^Moradia.*das despesas$/ }),
+  ).toBeInTheDocument()
 })
