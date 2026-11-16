@@ -55,4 +55,4 @@ SPA React que consome a API Django por sessão (cookie) na mesma origem. Fase 1:
   - **PWA:** `pwa.config.ts` (manifest e ícones em `public/`). O service worker não guarda nada de `/api`.
   - **A11y:** skip link, `main#conteudo`, tokens do tema claro com contraste AA, gráficos com `accessibilityLayer={false}` (a versão acessível é a tabela `sr-only`) e auditoria axe sem violações sérias.
   - **Testes:** `findBy*` com timeout de 3 s.
-
+- 2026-11-16: revisão da Fase 7. O erro de página fica dentro do shell (o menu continua), o `RouteError` também cobre "Unable to preload CSS", o registro de páginas é um Map por nome (sem duplicar no HMR) e a pré-carga roda no `renderApp` (só nos testes que renderizam o app).

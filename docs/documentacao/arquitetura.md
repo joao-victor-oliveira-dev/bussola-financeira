@@ -52,4 +52,4 @@ Veja "Como rodar" no `README.md`.
   - `render.yaml` (API + Postgres) e `frontend/vercel.json` (rewrite de `/api` para o Render, mesma origem, cache imutável para `/assets`).
   - WhiteNoise para os estáticos do admin. Com `DEBUG=False`, valem `SECURE_PROXY_SSL_HEADER`, redirecionamento HTTPS (com exceção de `/api/health`) e HSTS.
   - Tarefas diárias em produção via `POST /api/internal/daily` (`X-Cron-Secret`, comparação em tempo constante, 404 sem `CRON_SECRET`), chamado por `.github/workflows/daily.yml` às 3h de Brasília.
-
+- 2026-11-16: revisão da Fase 7. O endpoint diário chama as tarefas do Celery (uma lógica só) e fica fora do OpenAPI. Gunicorn com `--timeout 120`. O reset da demo trava o usuário (`select_for_update`), então repetir a chamada é seguro. No Vercel, o fallback do SPA não cobre `/assets/` (chunk inexistente → 404).
