@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { useAccountsList } from '@/api/generated/accounts/accounts'
+import { useBudgetsOverview } from '@/api/generated/budgets/budgets'
 import { useCategoriesList } from '@/api/generated/categories/categories'
 import {
   useDashboardCashflow,
@@ -15,6 +16,7 @@ import { NeedleMark } from '@/components/Logo'
 import { buttonVariants } from '@/components/ui/button'
 import { parseMonth } from '@/lib/dates'
 import { cn } from '@/lib/utils'
+import { BudgetWidget } from '@/pages/dashboard/BudgetWidget'
 import { CashflowChart } from '@/pages/dashboard/CashflowChart'
 import { CategoryBreakdown } from '@/pages/dashboard/CategoryBreakdown'
 import { KpiCards } from '@/pages/dashboard/KpiCards'
@@ -40,6 +42,7 @@ export function DashboardPage() {
   const top = useDashboardTopExpenses({ month }, keep)
   const pending = useDashboardPending()
   const invoicesDue = useDashboardInvoicesDue()
+  const budgets = useBudgetsOverview({ month }, keep)
 
   const lookups = useMemo(
     () => ({
@@ -113,6 +116,13 @@ export function DashboardPage() {
               error={top.isError}
               onRetry={() => top.refetch()}
               lookups={lookups}
+            />
+            <BudgetWidget
+              data={budgets.data}
+              month={month}
+              loading={budgets.isLoading}
+              error={budgets.isError}
+              onRetry={() => budgets.refetch()}
             />
           </div>
         </>
