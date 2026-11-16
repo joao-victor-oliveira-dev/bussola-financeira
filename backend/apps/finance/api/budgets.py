@@ -8,7 +8,7 @@ from ninja.security import django_auth
 from pydantic import Field, StringConstraints
 
 from apps.finance.api.common import get_owned
-from apps.finance.budgets import budget_overview, copy_budgets
+from apps.finance.budgets import budget_item, budget_overview, copy_budgets
 from apps.finance.models import Budget, Category, CategoryKind
 from apps.finance.schemas import MoneyOut
 
@@ -52,6 +52,8 @@ class BudgetTotals(Schema):
     limit: MoneyOut
     spent: MoneyOut
     remaining: MoneyOut
+    percent: str
+    status: BudgetStatus
 
 
 class BudgetOverviewOut(Schema):
@@ -74,12 +76,6 @@ class CopyOut(Schema):
     created: int
 
 
-def _item(budget: Budget) -> dict:
-    """Item recalculado a partir do resumo do mês (mesma regra de gasto)."""
-    overview = budget_overview(budget.user, budget.month)
-    return next(i for i in overview["items"] if i["id"] == budget.id)
-
-
 @router.get("", operation_id="budgetsOverview", response=BudgetOverviewOut)
 def overview(request, params: Query[MonthParams]):
     return budget_overview(request.auth, params.month)
@@ -97,7 +93,7 @@ def create_budget(request, payload: BudgetIn):
             )
     except IntegrityError:
         raise HttpError(409, "Esta categoria já tem orçamento neste mês.") from None
-    return Status(201, _item(budget))
+    return Status(201, budget_item(budget))
 
 
 # /copy antes de /{budget_id}: senão o POST cai na rota com parâmetro (405).
@@ -111,7 +107,7 @@ def update_budget(request, budget_id: int, payload: BudgetPatch):
     budget = get_owned(Budget, request.auth, budget_id)
     budget.limit = payload.limit
     budget.save(update_fields=["limit", "updated_at"])
-    return _item(budget)
+    return budget_item(budget)
 
 
 @router.delete("/{budget_id}", operation_id="budgetsDelete", response={204: None})

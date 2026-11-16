@@ -97,7 +97,13 @@ def test_overview_totals_order_and_unbudgeted(api, user, acc, food):
     spend(user, acc, fun, "120")  # sem orçamento
     body = overview(api)
     assert [i["category_name"] for i in body["items"]] == ["Alimentação", "Moradia"]
-    assert body["totals"] == {"limit": "3000.00", "spent": "1900.00", "remaining": "1100.00"}
+    assert body["totals"] == {
+        "limit": "3000.00",
+        "spent": "1900.00",
+        "remaining": "1100.00",
+        "percent": "63.3",
+        "status": "ok",
+    }
     assert body["unbudgeted"] == [
         {"category_id": fun.id, "category_name": "Lazer", "color": fun.color, "spent": "120.00"}
     ]
@@ -106,7 +112,13 @@ def test_overview_totals_order_and_unbudgeted(api, user, acc, food):
 def test_empty_month(api):
     body = overview(api)
     assert body["items"] == []
-    assert body["totals"] == {"limit": "0.00", "spent": "0.00", "remaining": "0.00"}
+    assert body["totals"] == {
+        "limit": "0.00",
+        "spent": "0.00",
+        "remaining": "0.00",
+        "percent": "0.0",
+        "status": "ok",
+    }
 
 
 # ---- CRUD ----
@@ -181,3 +193,45 @@ def test_copy_from_explicit_month(api, user, food):
     Budget.objects.create(user=user, category=food, month="2026-01", limit=Decimal("5"))
     r = api.post("/api/budgets/copy", {"to_month": "2026-11", "from_month": "2026-01"})
     assert r.json() == {"created": 1}
+
+
+# ---- revisão da Fase 5 ----
+def test_delete_category_with_budget_409(api, user, food):
+    Budget.objects.create(user=user, category=food, month="2026-11", limit=Decimal("1"))
+    r = api.delete(f"/api/categories/{food.id}")
+    assert r.status_code == 409
+    assert "orçamento" in r.json()["detail"]
+
+
+def test_category_with_budget_cannot_become_child_422(api, user, food):
+    other = CategoryFactory(user=user, kind="expense")
+    Budget.objects.create(user=user, category=food, month="2026-11", limit=Decimal("1"))
+    assert api.patch(f"/api/categories/{food.id}", {"parent_id": other.id}).status_code == 422
+
+
+def test_copy_skips_budgets_on_non_root_categories(api, user, food):
+    child = CategoryFactory(user=user, kind="expense", parent=food)
+    Budget.objects.create(user=user, category=child, month="2026-10", limit=Decimal("5"))
+    Budget.objects.create(user=user, category=food, month="2026-10", limit=Decimal("9"))
+    assert api.post("/api/budgets/copy", {"to_month": "2026-11"}).json() == {"created": 1}
+    assert list(Budget.objects.filter(month="2026-11").values_list("category_id", flat=True)) == [
+        food.id
+    ]
+
+
+def test_totals_carry_percent_and_status(api, user, acc, food):
+    Budget.objects.create(user=user, category=food, month="2026-11", limit=Decimal("1000"))
+    spend(user, acc, food, "850")
+    totals = overview(api)["totals"]
+    assert (totals["percent"], totals["status"]) == ("85.0", "warning")
+    assert api.get("/api/budgets", {"month": "2030-01"}).json()["totals"]["status"] == "ok"
+
+
+def test_create_returns_item_with_own_spending(api, user, acc, food):
+    spend(user, acc, food, "120")
+    r = api.post("/api/budgets", {"category_id": food.id, "month": "2026-11", "limit": "100"})
+    assert (r.json()["spent"], r.json()["status"], r.json()["percent"]) == (
+        "120.00",
+        "over",
+        "120.0",
+    )

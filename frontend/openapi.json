@@ -322,6 +322,10 @@
             "title": "Limit",
             "type": "string"
           },
+          "percent": {
+            "title": "Percent",
+            "type": "string"
+          },
           "remaining": {
             "title": "Remaining",
             "type": "string"
@@ -329,12 +333,23 @@
           "spent": {
             "title": "Spent",
             "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "warning",
+              "over"
+            ],
+            "title": "Status",
+            "type": "string"
           }
         },
         "required": [
           "limit",
           "spent",
-          "remaining"
+          "remaining",
+          "percent",
+          "status"
         ],
         "title": "BudgetTotals",
         "type": "object"

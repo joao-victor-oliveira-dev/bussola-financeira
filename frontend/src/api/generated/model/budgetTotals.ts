@@ -4,9 +4,12 @@
  * Bússola Financeira API
  * OpenAPI spec version: 1.0.0
  */
+import type { BudgetTotalsStatus } from './budgetTotalsStatus';
 
 export interface BudgetTotals {
   limit: string;
+  percent: string;
   remaining: string;
   spent: string;
+  status: BudgetTotalsStatus;
 }

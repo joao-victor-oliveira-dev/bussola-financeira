@@ -18,6 +18,7 @@ export * from './budgetOverviewOut';
 export * from './budgetPatch';
 export * from './budgetsOverviewParams';
 export * from './budgetTotals';
+export * from './budgetTotalsStatus';
 export * from './cardIn';
 export * from './cardOut';
 export * from './cardPatch';

@@ -3,7 +3,7 @@
 from decimal import ROUND_DOWN, Decimal
 
 from django.db import transaction
-from django.db.models import F, Sum
+from django.db.models import F, Q, Sum
 from django.db.models.functions import Coalesce
 
 from apps.finance.dashboard import month_bounds, shift_month
@@ -84,6 +84,9 @@ def budget_overview(user, month: str) -> dict:
             "limit": total_limit,
             "spent": total_spent,
             "remaining": total_limit - total_spent,
+            # mesma regra dos itens (o front não recalcula a situação)
+            "percent": percent_of(total_spent, total_limit) if total_limit else "0.0",
+            "status": status_of(total_spent, total_limit) if total_limit else "ok",
         },
         "unbudgeted": unbudgeted,
     }
@@ -98,8 +101,36 @@ def copy_budgets(user, to_month: str, from_month: str | None = None) -> int:
     )
     new = [
         Budget(user=user, category_id=b.category_id, month=to_month, limit=b.limit)
-        for b in Budget.objects.filter(user=user, month=source)
+        for b in Budget.objects.filter(
+            user=user,
+            month=source,
+            # só o que ainda é válido: categoria principal de despesa
+            category__parent__isnull=True,
+            category__kind=TxKind.EXPENSE,
+        )
         if b.category_id not in existing
     ]
     Budget.objects.bulk_create(new)
     return len(new)
+
+
+def budget_item(budget: Budget) -> dict:
+    """Um item só (resposta de POST/PATCH), com uma consulta de gasto para a categoria."""
+    first, last = month_bounds(budget.month)
+    spent = (
+        Transaction.objects.filter(user=budget.user, kind=TxKind.EXPENSE, date__range=(first, last))
+        .filter(Q(category_id=budget.category_id) | Q(category__parent_id=budget.category_id))
+        .aggregate(t=Sum("amount"))["t"]
+        or ZERO
+    )
+    return {
+        "id": budget.id,
+        "category_id": budget.category_id,
+        "category_name": budget.category.name,
+        "color": budget.category.color,
+        "limit": budget.limit,
+        "spent": spent,
+        "remaining": budget.limit - spent,
+        "percent": percent_of(spent, budget.limit),
+        "status": status_of(spent, budget.limit),
+    }
