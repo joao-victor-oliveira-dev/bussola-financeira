@@ -253,6 +253,15 @@ class Transaction(Owned):
         on_delete=models.SET_NULL,
         related_name="occurrences",
     )
+    import_batch = models.ForeignKey(
+        "ImportBatch",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="transactions",
+    )
+    # Identificador do banco (FITID do OFX, coluna do CSV ou hash): base da deduplicação.
+    external_id = models.CharField(max_length=100, blank=True, default="")
     status = models.CharField(max_length=7, choices=TxStatus.choices, default=TxStatus.PAID)
     notes = models.TextField("notas", blank=True)
     tags = models.ManyToManyField(Tag, blank=True, related_name="transactions")
@@ -260,7 +269,10 @@ class Transaction(Owned):
     class Meta:
         verbose_name = "lançamento"
         ordering = ["-date", "-id"]
-        indexes = [models.Index(fields=["user", "date"])]
+        indexes = [
+            models.Index(fields=["user", "date"]),
+            models.Index(fields=["account", "external_id"]),
+        ]
         constraints = [
             models.CheckConstraint(condition=Q(amount__gt=0), name="tx_amount_positive"),
             # origem: conta OU cartão
@@ -318,3 +330,81 @@ class Budget(Owned):
 
     def __str__(self):
         return f"{self.category} {self.month}"
+
+
+class ImportFormat(models.TextChoices):
+    OFX = "ofx", "OFX"
+    CSV = "csv", "CSV"
+
+
+class ImportStatus(models.TextChoices):
+    PROCESSING = "processing", "Processando"
+    PREVIEW = "preview", "Prévia"
+    DONE = "done", "Importado"
+    FAILED = "failed", "Falhou"
+    UNDONE = "undone", "Desfeito"
+
+
+class ImportBatch(Owned):
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="imports")
+    filename = models.CharField("arquivo", max_length=200)
+    format = models.CharField("formato", max_length=3, choices=ImportFormat.choices)
+    options = models.JSONField("opções", default=dict, blank=True)  # preset e mapeamento do CSV
+    raw = models.TextField("conteúdo")  # sem FileField: o servidor não tem disco persistente
+    status = models.CharField(
+        max_length=10, choices=ImportStatus.choices, default=ImportStatus.PROCESSING
+    )
+    error = models.TextField(blank=True)
+    parse_errors = models.JSONField(default=list, blank=True)  # [[linha, mensagem], ...]
+    total_rows = models.PositiveIntegerField(default=0)
+    duplicate_rows = models.PositiveIntegerField(default=0)
+    created_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "importação"
+        verbose_name_plural = "importações"
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return f"{self.filename} ({self.get_status_display()})"
+
+
+class ImportRow(models.Model):
+    batch = models.ForeignKey(ImportBatch, on_delete=models.CASCADE, related_name="rows")
+    line = models.PositiveIntegerField()
+    date = models.DateField()
+    description = models.CharField(max_length=140)
+    kind = models.CharField(max_length=8, choices=TxKind.choices)
+    amount = models.DecimalField(**MONEY)  # positivo; o tipo carrega o sinal
+    external_id = models.CharField(max_length=100)
+    suggested_category = models.ForeignKey(
+        Category, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    is_duplicate = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["line"]
+
+    def __str__(self):
+        return f"{self.line}: {self.description}"
+
+
+class CategorizationRule(Owned):
+    """'Descrição contém <pattern> → categoria'. Maior prioridade vence."""
+
+    pattern = models.CharField("contém", max_length=140)  # normalizado (sem acento, minúsculo)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="rules")
+    kind = models.CharField(max_length=7, choices=CategoryKind.choices)  # = category.kind
+    priority = models.SmallIntegerField("prioridade", default=0)
+    active = models.BooleanField("ativa", default=True)
+
+    class Meta:
+        verbose_name = "regra de categorização"
+        verbose_name_plural = "regras de categorização"
+        ordering = ["-priority", "pattern"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "kind", "pattern"], name="rule_unique_pattern"),
+        ]
+
+    def __str__(self):
+        return f"{self.pattern} → {self.category}"
