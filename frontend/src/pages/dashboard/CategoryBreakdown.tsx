@@ -54,7 +54,6 @@ export function CategoryBreakdown({
             <li key={s.id ?? 'none'}>
               <button
                 type="button"
-                aria-label={`${s.name}: ${formatBRL(s.total)}, ${share.format(value / total)} das despesas`}
                 aria-expanded={canExpand ? expanded : undefined}
                 disabled={!canExpand}
                 onClick={() => setOpen(expanded ? 'none' : s.id)}
@@ -79,6 +78,7 @@ export function CategoryBreakdown({
                   <span className="ml-auto tabular-nums">{formatBRL(s.total)}</span>
                   <span className="w-10 text-right text-xs text-muted-foreground tabular-nums">
                     {share.format(value / total)}
+                    <span className="sr-only"> das despesas</span>
                   </span>
                 </span>
                 <Bar ratio={value / max} />

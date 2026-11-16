@@ -118,6 +118,8 @@ def seed_demo(user, today: datetime.date | None = None, reset: bool = False) -> 
     tags e categorias renomeadas, e o seed não pode depender desse estado.
     """
     today = today or datetime.date.today()
+    # Trava o usuário da demo: um reset concorrente (cron + retry) espera em vez de colidir.
+    User.objects.select_for_update().filter(pk=user.pk).first()
     if not reset and Account.objects.filter(user=user).exists():
         return
     Transaction.objects.filter(user=user).delete()

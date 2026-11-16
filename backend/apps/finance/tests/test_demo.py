@@ -222,3 +222,19 @@ def test_demo_rules_suggest_categories_for_sample_statement():
     suggested = {r.description: r.suggested_category for r in batch.rows.all()}
     assert suggested["Uber *Trip"].name == "Transporte"
     assert suggested["Compra no débito - Supermercado Bom Preço"].name == "Mercado"
+
+
+def test_seed_demo_locks_the_user_row(monkeypatch):
+    """Duas chamadas simultâneas (cron + retry) se enfileiram em vez de colidir."""
+    from django.db.models.query import QuerySet
+
+    calls = []
+    original = QuerySet.select_for_update
+
+    def spy(self, *a, **kw):
+        calls.append(self.model.__name__)
+        return original(self, *a, **kw)
+
+    monkeypatch.setattr(QuerySet, "select_for_update", spy)
+    seed_demo(UserFactory(), today=TODAY, reset=True)
+    assert "User" in calls

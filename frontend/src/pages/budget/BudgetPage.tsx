@@ -133,7 +133,6 @@ export function BudgetPage() {
               >
                 <button
                   type="button"
-                  aria-label={`Editar orçamento de ${item.category_name}`}
                   onClick={() => setDialog({ open: true, budget: item, categoryId: null })}
                   className="grid w-full gap-3 rounded-2xl p-5 text-left transition-colors hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 >
@@ -143,7 +142,9 @@ export function BudgetPage() {
                       className="size-2.5 rounded-full"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span className="font-medium">{item.category_name}</span>
+                    <span className="font-medium">
+                      <span className="sr-only">Editar orçamento de</span> {item.category_name}
+                    </span>
                     <span className="ml-auto text-sm text-muted-foreground tabular-nums">
                       {item.percent.replace('.', ',')}%
                     </span>

@@ -70,7 +70,7 @@
   --surface-raised: #f8faf9;
   --popover: #ffffff;
   --popover-foreground: #12201e;
-  --primary: #0e8c7b;
+  --primary: #0b7a6b; /* 5,2:1 com texto claro (WCAG AA) */
   --primary-foreground: #f2fffc;
   --secondary: #e4eae8;
   --secondary-foreground: #12201e;
@@ -78,9 +78,9 @@
   --muted-foreground: #5b6e6b;
   --accent: #e1ebe8;
   --accent-foreground: #12201e;
-  --brass: #9a7533;
-  --income: #13925e;
-  --expense: #d2503f;
+  --brass: #86642a; /* 5,4:1 sobre o card: também é cor de texto (pendente, perto do limite) */
+  --income: #0f7d50; /* 5,2:1 sobre o card */
+  --expense: #bf3f2f; /* 5,3:1 sobre o card */
   --destructive: #d2503f;
   --border: rgb(18 32 30 / 0.1);
   --input: rgb(18 32 30 / 0.16);
