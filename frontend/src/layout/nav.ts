@@ -3,6 +3,7 @@ import {
   CreditCard,
   LayoutDashboard,
   Repeat,
+  Upload,
   Shapes,
   Target,
   Wallet,
@@ -19,5 +20,6 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/cartoes', label: 'Cartões', icon: CreditCard },
   { to: '/orcamento', label: 'Orçamento', icon: Target },
   { to: '/recorrencias', label: 'Recorrências', icon: Repeat, mobile: false },
+  { to: '/importar', label: 'Importar', icon: Upload, mobile: false },
   { to: '/categorias', label: 'Categorias', icon: Shapes, mobile: false },
 ]
