@@ -4,6 +4,7 @@ import { FormError } from '@/components/FormError'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { errorMessage } from '@/finance/cache'
 import { ImportHistory } from '@/pages/import/ImportHistory'
 import { PreviewTable } from '@/pages/import/PreviewTable'
 import { RulesPanel } from '@/pages/import/RulesPanel'
@@ -32,6 +33,13 @@ export function ImportPage() {
 
       {batchId === null ? (
         <UploadForm onUploaded={(b) => open(b.id)} />
+      ) : batch.isError && !batch.data ? (
+        <div className="grid gap-4">
+          <FormError message={errorMessage(batch.error)} />
+          <Button variant="outline" className="w-fit" onClick={close}>
+            Enviar outro arquivo
+          </Button>
+        </div>
       ) : !batch.data || batch.data.status === 'processing' ? (
         <Skeleton className="h-64 rounded-2xl" />
       ) : batch.data.status === 'preview' ? (

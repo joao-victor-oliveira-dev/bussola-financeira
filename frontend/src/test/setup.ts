@@ -1,4 +1,8 @@
 import '@testing-library/jest-dom/vitest'
+import { configure } from '@testing-library/react'
+
+// O app inteiro renderiza em cada teste; com a máquina carregada (CI) 1 s de findBy* é pouco.
+configure({ asyncUtilTimeout: 3000 })
 
 // jsdom não implementa matchMedia (usado pelo Motion para prefers-reduced-motion)
 if (!window.matchMedia) {

@@ -209,3 +209,18 @@ it('cria regra de categorização', async () => {
   await userEvent.click(within(rules).getByRole('button', { name: 'Adicionar regra' }))
   await waitFor(() => expect(sent).toEqual({ pattern: 'Uber', category_id: 11 }))
 })
+
+it('lote que não existe mais mostra erro e permite recomeçar', async () => {
+  const { router } = setup('/importar?lote=7', {
+    'GET /api/imports/7': () => ({ status: 404, body: { detail: 'Não encontrado.' } }),
+  })
+  expect(await screen.findByRole('alert')).toHaveTextContent('Não encontrado.')
+  await userEvent.click(screen.getByRole('button', { name: 'Enviar outro arquivo' }))
+  await waitFor(() => expect(router.state.location.search).toBe(''))
+})
+
+it('painel de regras deixa claro que aprender é opcional', async () => {
+  setup()
+  const rules = await screen.findByRole('region', { name: 'Regras de categorização' })
+  expect(rules).toHaveTextContent('Lembrar as categorias que eu corrigir')
+})

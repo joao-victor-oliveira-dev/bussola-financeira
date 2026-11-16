@@ -60,8 +60,8 @@ export function RulesPanel() {
       <div>
         <h2 className="font-semibold">Regras de categorização</h2>
         <p className="text-sm text-muted-foreground">
-          Sugerem a categoria quando a descrição contém o texto. As que você corrige na revisão
-          viram regras automaticamente.
+          Sugerem a categoria quando a descrição contém o texto. Na revisão, marque “Lembrar as
+          categorias que eu corrigir” para que suas correções virem regras.
         </p>
       </div>
       <form
