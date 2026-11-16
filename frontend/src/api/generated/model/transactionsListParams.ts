@@ -11,6 +11,7 @@ export type TransactionsListParams = {
   date_from?: string | null;
   date_to?: string | null;
   account?: number | null;
+  card?: number | null;
   category?: number | null;
   kind?: TransactionsListKind;
   status?: TransactionsListStatus;

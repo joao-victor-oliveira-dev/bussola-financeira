@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Plus, Shapes } from 'lucide-react'
+import { Plus, Repeat, Shapes } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { useAccountsList } from '@/api/generated/accounts/accounts'
+import { useCardsList } from '@/api/generated/cards/cards'
 import { useCategoriesList } from '@/api/generated/categories/categories'
 import type { TransactionOut } from '@/api/generated/model'
 import { useTagsList } from '@/api/generated/tags/tags'
@@ -40,6 +41,7 @@ export function TransactionsPage() {
   const { data: accounts = [] } = useAccountsList()
   const { data: categories = [] } = useCategoriesList()
   const { data: tags = [] } = useTagsList()
+  const { data: cards = [] } = useCardsList()
   const patch = useTransactionsUpdate()
   const remove = useTransactionsDelete()
 
@@ -49,10 +51,11 @@ export function TransactionsPage() {
   const lookups = useMemo(
     () => ({
       accounts: new Map(accounts.map((a) => [a.id, a])),
+      cards: new Map(cards.map((c) => [c.id, c])),
       categories: new Map(categories.map((c) => [c.id, c])),
       tags: new Map(tags.map((t) => [t.id, t])),
     }),
-    [accounts, categories, tags],
+    [accounts, cards, categories, tags],
   )
 
   const openNew = () => setDialog({ open: true, tx: null, mode: 'create' })
@@ -119,6 +122,16 @@ export function TransactionsPage() {
             >
               <Shapes aria-hidden="true" />
               Categorias
+            </Link>
+            <Link
+              to="/recorrencias"
+              aria-label="Recorrências"
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'icon' }),
+                'size-10 md:hidden',
+              )}
+            >
+              <Repeat aria-hidden="true" />
             </Link>
             <Button onClick={openNew} className="hidden h-10 rounded-[10px] px-4 md:inline-flex">
               <Plus aria-hidden="true" />

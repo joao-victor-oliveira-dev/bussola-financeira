@@ -23,3 +23,12 @@ it('mudar lançamentos invalida lista e painel', async () => {
   expect(stale(c, '/api/transactions')).toBe(true)
   expect(stale(c, '/api/dashboard/categories')).toBe(true)
 })
+
+it('mudar lançamentos também invalida cartões (limite e fatura)', async () => {
+  const c = new QueryClient()
+  c.setQueryData(['/api/cards'], [])
+  c.setQueryData(['/api/cards/3/invoices/2026-11'], {})
+  await invalidateMoney(c)
+  expect(c.getQueryState(['/api/cards'])?.isInvalidated).toBe(true)
+  expect(c.getQueryState(['/api/cards/3/invoices/2026-11'])?.isInvalidated).toBe(true)
+})

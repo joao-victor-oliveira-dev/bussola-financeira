@@ -63,3 +63,4 @@ Um id de outro usuário responde **404**. Uma referência de outro usuário dent
   - Decisão: JSON em snake_case.
   - Desvio do plano: num POST/PATCH de transferência, a categoria enviada é ignorada em vez de gerar 422. Nos outros tipos, o destino é limpo.
 - 2026-11-13: revisão da Fase 2 — 409 em corrida de duplicados (tag/categoria), nome de conta único sem diferenciar maiúsculas, unicidade de categoria por duas constraints parciais (funciona no SQLite), `count` junto com os totais, categorias padrão em lote; no front: página fora do intervalo, parâmetros inválidos na URL, atalho N com modal aberto e destino arquivado na edição.
+- 2026-11-14: o lançamento passou a ter conta **ou** cartão (`account` pode ser nulo), mais `invoice`, `installment` e `recurring_rule` na saída e o filtro `card`. Detalhes em `cartoes.md` e `recorrencias.md`.

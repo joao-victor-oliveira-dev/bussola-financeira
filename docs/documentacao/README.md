@@ -10,8 +10,8 @@ Cada página é criada quando a área é construída e atualizada a cada mudanç
 | Frontend (estrutura, tema, animações, cliente da API) | [`frontend.md`](frontend.md) | ativo (Fase 1) |
 | Contas, categorias, tags e lançamentos | [`financas.md`](financas.md) | ativo (Fase 2) |
 | Dashboard e agregações | [`dashboard.md`](dashboard.md) | ativo (Fase 3) |
-| Cartões, faturas e parcelamentos | `cartoes.md` | planejado (Fase 4) |
-| Recorrências e tarefas Celery | `recorrencias.md` | planejado (Fase 4) |
+| Cartões, faturas e parcelamentos | [`cartoes.md`](cartoes.md) | ativo (Fase 4) |
+| Recorrências e tarefas Celery | [`recorrencias.md`](recorrencias.md) | ativo (Fase 4) |
 | Orçamento | `orcamento.md` | planejado (Fase 5) |
 | Importação OFX/CSV | `importacao.md` | planejado (Fase 6) |
 

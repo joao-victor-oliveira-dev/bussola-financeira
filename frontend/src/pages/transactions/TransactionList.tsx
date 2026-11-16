@@ -1,6 +1,12 @@
 import { ArrowLeftRight, MoreHorizontal } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import type { AccountOut, CategoryOut, TagOut, TransactionOut } from '@/api/generated/model'
+import type {
+  AccountOut,
+  CardOut,
+  CategoryOut,
+  TagOut,
+  TransactionOut,
+} from '@/api/generated/model'
 import { Money } from '@/components/Money'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -21,6 +27,7 @@ export type TxActions = {
 
 type Lookups = {
   accounts: Map<number, AccountOut>
+  cards: Map<number, CardOut>
   categories: Map<number, CategoryOut>
   tags: Map<number, TagOut>
 }
@@ -84,12 +91,19 @@ function TransactionRow({
   lookups: Lookups
   actions: TxActions
 }) {
-  const account = lookups.accounts.get(tx.account_id)
+  const account = lookups.accounts.get(tx.account_id ?? 0) // compra no cartão não tem conta
   const category = tx.category_id ? lookups.categories.get(tx.category_id) : undefined
   const isTransfer = tx.kind === 'transfer'
+  const card = tx.credit_card_id ? lookups.cards.get(tx.credit_card_id) : undefined
+  const destination = tx.to_credit_card_id
+    ? `fatura ${lookups.cards.get(tx.to_credit_card_id)?.name ?? ''}`.trim()
+    : (lookups.accounts.get(tx.to_account_id ?? 0)?.name ?? '—')
+  const source = card
+    ? `${card.name}${tx.installment ? ` · parcela ${tx.installment}` : ''}`
+    : (account?.name ?? '—')
   const subtitle = isTransfer
-    ? `${account?.name ?? '—'} → ${lookups.accounts.get(tx.to_account_id ?? 0)?.name ?? '—'}`
-    : `${category?.name ?? 'Sem categoria'} · ${account?.name ?? '—'}`
+    ? `${account?.name ?? '—'} → ${destination}`
+    : `${category?.name ?? 'Sem categoria'} · ${source}`
   const dotColor = isTransfer ? undefined : (category?.color ?? 'var(--muted-foreground)')
 
   return (

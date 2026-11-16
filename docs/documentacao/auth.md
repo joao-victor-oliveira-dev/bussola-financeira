@@ -35,7 +35,7 @@ Erros sempre seguem o formato `{"detail": "<mensagem em pt-BR>"}`.
 - O botão **Entrar como visitante**, no login, chama `POST /api/auth/demo`. Ele entra como `DEMO_EMAIL` (padrão `demo@bussola.app`, nome "Visitante").
 - Esse usuário não tem senha utilizável (`set_unusable_password`), então só entra por esse endpoint.
 - Na primeira vez, `seed_demo` gera 12 meses de dados determinísticos (`random.Random(42)`). Chamadas seguintes não duplicam nada.
-- Reset manual: `python manage.py seed_demo --reset`. O reset diário automático entra com o Celery na Fase 4.
+- Reset manual: `python manage.py seed_demo --reset`. O reset diário automático é a tarefa Celery `finance.reset_demo` (beat). A demo inclui cartão com faturas pagas, 2 parcelamentos e recorrências.
 - **Desligado por padrão** (`DEMO_ENABLED=False`): ligue no `.env` (o `.env.example` e o docker-compose já vêm com `True`). Desligado, o endpoint responde 404.
 - O e-mail da demo é **reservado**: o cadastro com ele responde 409. Se existir uma conta real (com senha) com esse e-mail, a demo responde 404 e nunca entra nela.
 - Quando a demo fica sem contas (um visitante apagou tudo), o próximo login gera os dados de novo do zero, ignorando tags ou categorias que tenham sobrado. Dois primeiros acessos simultâneos não geram 500.

@@ -5,6 +5,7 @@ import { useCategoriesList } from '@/api/generated/categories/categories'
 import {
   useDashboardCashflow,
   useDashboardCategories,
+  useDashboardInvoicesDue,
   useDashboardPending,
   useDashboardSummary,
   useDashboardTopExpenses,
@@ -18,7 +19,7 @@ import { CashflowChart } from '@/pages/dashboard/CashflowChart'
 import { CategoryBreakdown } from '@/pages/dashboard/CategoryBreakdown'
 import { KpiCards } from '@/pages/dashboard/KpiCards'
 import { NetWorthChart } from '@/pages/dashboard/NetWorthChart'
-import { PendingList, TopExpenses } from '@/pages/dashboard/TransactionLists'
+import { TopExpenses, UpcomingList } from '@/pages/dashboard/TransactionLists'
 import { MonthSwitcher } from '@/pages/transactions/TransactionFilters'
 
 const keep = { query: { placeholderData: <T,>(prev: T) => prev } }
@@ -38,6 +39,7 @@ export function DashboardPage() {
   const breakdown = useDashboardCategories({ month }, keep)
   const top = useDashboardTopExpenses({ month }, keep)
   const pending = useDashboardPending()
+  const invoicesDue = useDashboardInvoicesDue()
 
   const lookups = useMemo(
     () => ({
@@ -98,11 +100,12 @@ export function DashboardPage() {
               error={cashflow.isError}
               onRetry={() => cashflow.refetch()}
             />
-            <PendingList
+            <UpcomingList
               data={pending.data}
-              loading={pending.isLoading}
-              error={pending.isError}
-              onRetry={() => pending.refetch()}
+              invoices={invoicesDue.data}
+              loading={pending.isLoading || invoicesDue.isLoading}
+              error={pending.isError || invoicesDue.isError}
+              onRetry={() => Promise.all([pending.refetch(), invoicesDue.refetch()])}
             />
             <TopExpenses
               data={top.data}

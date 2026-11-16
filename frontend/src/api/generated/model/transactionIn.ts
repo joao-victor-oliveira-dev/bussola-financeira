@@ -8,9 +8,10 @@ import type { TransactionInKind } from './transactionInKind';
 import type { TransactionInStatus } from './transactionInStatus';
 
 export interface TransactionIn {
-  account_id: number;
+  account_id?: number | null;
   amount: number | string;
   category_id?: number | null;
+  credit_card_id?: number | null;
   date: string;
   /**
      * @minLength 1

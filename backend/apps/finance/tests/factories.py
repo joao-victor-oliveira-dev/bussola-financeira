@@ -45,3 +45,15 @@ class TransactionFactory(factory.django.DjangoModelFactory):
     description = factory.Sequence(lambda n: f"Lançamento {n}")
     account = factory.SubFactory(AccountFactory, user=factory.SelfAttribute("..user"))
     status = "paid"
+
+
+class CreditCardFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "finance.CreditCard"
+
+    user = factory.SubFactory(UserFactory)
+    name = factory.Sequence(lambda n: f"Cartão {n}")
+    limit = Decimal("5000.00")
+    closing_day = 10
+    due_day = 20
+    payment_account = factory.SubFactory(AccountFactory, user=factory.SelfAttribute("..user"))

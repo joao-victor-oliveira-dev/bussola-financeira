@@ -1,4 +1,4 @@
-import { formatBRL, maskBRLInput, parseBRL, sumMoney } from '@/lib/money'
+import { formatBRL, maskBRLInput, parseBRL, splitMoney, sumMoney } from '@/lib/money'
 
 const nbsp = (s: string) => s.replace(/ /g, ' ')
 
@@ -67,5 +67,13 @@ describe('sumMoney', () => {
     expect(sumMoney(['1234.50', '-34.50'])).toBe('1200.00')
     expect(sumMoney(['-5', '2.5'])).toBe('-2.50')
     expect(sumMoney([])).toBe('0.00')
+  })
+})
+
+describe('splitMoney', () => {
+  it('igual ao backend: arredonda para baixo e o resto vai na 1ª', () => {
+    expect(splitMoney('100.00', 3)).toEqual(['33.34', '33.33', '33.33'])
+    expect(splitMoney('10.00', 6)).toEqual(['1.70', '1.66', '1.66', '1.66', '1.66', '1.66'])
+    expect(splitMoney('3000.00', 10)).toEqual(Array(10).fill('300.00'))
   })
 })

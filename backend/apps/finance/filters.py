@@ -14,6 +14,7 @@ class TransactionFilters(Schema):
     date_from: datetime.date | None = None
     date_to: datetime.date | None = None
     account: int | None = None
+    card: int | None = None
     category: int | None = None
     kind: TxKindLit | None = None
     status: TxStatusLit | None = None
@@ -30,6 +31,8 @@ def apply_filters(qs: QuerySet, f: TransactionFilters) -> QuerySet:
         qs = qs.filter(date__lte=f.date_to)
     if f.account:
         qs = qs.filter(Q(account_id=f.account) | Q(to_account_id=f.account))
+    if f.card:
+        qs = qs.filter(Q(credit_card_id=f.card) | Q(to_credit_card_id=f.card))
     if f.category:
         qs = qs.filter(Q(category_id=f.category) | Q(category__parent_id=f.category))
     if f.kind:

@@ -47,3 +47,10 @@ export function formatDayHeader(iso: string, today = new Date()): string {
   if (iso === toISODate(yesterday)) return 'Ontem'
   return dayFmt.format(parseISODate(iso))
 }
+
+const shortDay = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short' })
+
+/** "2026-11-20" → "20 de nov" */
+export function formatShortDate(iso: string): string {
+  return shortDay.format(parseISODate(iso)).replace('.', '')
+}

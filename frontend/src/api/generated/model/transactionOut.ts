@@ -8,15 +8,20 @@ import type { TransactionOutKind } from './transactionOutKind';
 import type { TransactionOutStatus } from './transactionOutStatus';
 
 export interface TransactionOut {
-  account_id: number;
+  account_id: number | null;
   amount: string;
   category_id: number | null;
+  credit_card_id: number | null;
   date: string;
   description: string;
   id: number;
+  installment: string | null;
+  invoice: string | null;
   kind: TransactionOutKind;
   notes: string;
+  recurring_rule_id: number | null;
   status: TransactionOutStatus;
   tag_ids: number[];
   to_account_id: number | null;
+  to_credit_card_id: number | null;
 }

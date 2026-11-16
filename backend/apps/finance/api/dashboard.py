@@ -1,5 +1,7 @@
+import datetime
 from typing import Annotated
 
+from django.utils import timezone
 from ninja import Query, Router, Schema
 from ninja.security import django_auth
 from pydantic import Field, StringConstraints
@@ -86,3 +88,22 @@ def top_expenses(request, params: Query[TopParams]):
 @router.get("/pending", operation_id="dashboardPending", response=list[TransactionOut])
 def pending(request, params: Query[LimitParams]):
     return q.pending(request.auth, params.limit)
+
+
+class InvoiceDueOut(Schema):
+    card_id: int
+    card_name: str
+    card_color: str
+    reference: str
+    due_date: datetime.date
+    total: MoneyOut
+    overdue: bool
+
+
+class DaysParams(Schema):
+    days: int = Field(30, ge=1, le=90)
+
+
+@router.get("/invoices-due", operation_id="dashboardInvoicesDue", response=list[InvoiceDueOut])
+def invoices_due(request, params: Query[DaysParams]):
+    return q.invoices_due(request.auth, timezone.localdate(), params.days)
