@@ -17,6 +17,10 @@ export function invalidateMoney(client: QueryClient) {
     invalidateDashboard(client),
     // compras no cartão mudam limite usado e totais de fatura
     client.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith('/api/cards') }),
+    // e o gasto de cada orçamento
+    client.invalidateQueries({
+      predicate: (q) => String(q.queryKey[0]).startsWith('/api/budgets'),
+    }),
   ])
 }
 

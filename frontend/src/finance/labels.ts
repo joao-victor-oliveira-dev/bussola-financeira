@@ -17,3 +17,9 @@ export const TX_KINDS = {
 export const TX_STATUS = { paid: 'Efetivado', pending: 'Pendente' } as const
 
 export const INVOICE_STATUS = { open: 'Aberta', closed: 'Fechada', paid: 'Paga' } as const
+
+export const BUDGET_STATUS = {
+  ok: 'Dentro do limite',
+  warning: 'Perto do limite',
+  over: 'Estourou',
+} as const
