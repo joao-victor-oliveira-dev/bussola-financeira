@@ -14,11 +14,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { errorMessage } from '@/finance/cache'
 import { parseMonth } from '@/lib/dates'
 import { formatBRL } from '@/lib/money'
+import { cn } from '@/lib/utils'
 import { BudgetFormDialog, type BudgetDialogState } from '@/pages/budget/BudgetFormDialog'
 import { BudgetBar, BudgetStatusLabel } from '@/pages/budget/BudgetMeter'
 import { MonthSwitcher } from '@/pages/transactions/TransactionFilters'
 
-function remainingText(item: BudgetItemOut): string {
+function remainingText(item: Pick<BudgetItemOut, 'remaining'>): string {
   const r = Number(item.remaining)
   return r >= 0 ? `Faltam ${formatBRL(item.remaining)}` : `${formatBRL(-r)} acima`
 }
@@ -117,7 +118,14 @@ export function BudgetPage() {
                   </span>
                 </p>
               </div>
-              <Money value={data.totals.remaining} tone="auto" className="text-sm font-medium" />
+              <span
+                className={cn(
+                  'text-sm font-medium tabular-nums',
+                  Number(data.totals.remaining) < 0 && 'text-expense',
+                )}
+              >
+                {remainingText(data.totals)}
+              </span>
             </div>
             <BudgetBar percent={totalPercent} status={totalStatus} />
           </section>

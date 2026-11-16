@@ -72,13 +72,13 @@ PLANS = [
 # do limite e Assinaturas estoura: a tela de Orçamento mostra as três situações.
 BUDGETS = {
     "Moradia": "3500.00",
-    "Alimentação": "1900.00",
-    "Transporte": "800.00",
+    "Alimentação": "2400.00",
+    "Transporte": "2000.00",
     "Saúde": "900.00",
     "Lazer": "700.00",
-    "Compras": "1200.00",
+    "Compras": "2000.00",
     "Assinaturas": "70.00",
-    "Educação": "400.00",
+    "Educação": "500.00",
 }
 
 TRIP = [  # mês de viagem (4 meses atrás), com a tag "viagem"
