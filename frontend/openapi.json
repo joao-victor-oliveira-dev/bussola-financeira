@@ -4411,6 +4411,39 @@
         ]
       }
     },
+    "/api/internal/daily": {
+      "post": {
+        "description": "Tarefas diárias em produção sem worker pago (chamado pelo GitHub Actions agendado).\n\nSem CRON_SECRET configurado o endpoint nem existe (404); segredo errado → 403.",
+        "operationId": "internalDaily",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x_cron_secret",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X Cron Secret"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "Daily",
+        "tags": [
+          "internal"
+        ]
+      }
+    },
     "/api/recurring": {
       "get": {
         "operationId": "recurringList",

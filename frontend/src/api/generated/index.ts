@@ -7,6 +7,7 @@ export * from './dashboard/dashboard';
 export * from './imports/imports';
 export * from './infra/infra';
 export * from './installments/installments';
+export * from './internal/internal';
 export * from './recurring/recurring';
 export * from './rules/rules';
 export * from './tags/tags';
