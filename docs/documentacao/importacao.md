@@ -20,6 +20,7 @@ Arquivos para testar: [`docs/exemplos/extrato-exemplo.csv`](../exemplos/extrato-
   - Lê os blocos `<STMTTRN>` em SGML (tags sem fechamento) ou XML.
   - Datas `YYYYMMDD[hhmmss][.xxx][TZ]`. Valor com ponto ou vírgula.
   - A descrição é `NAME - MEMO`. O identificador é o `FITID`.
+  - O separador decimal do `TRNAMT` é o **último** entre `,` e `.` (`guess_decimal`): `1,234.56` → 1234,56.
   - Valor 0 é ignorado. Uma transação inválida vira erro de linha e não derruba o lote.
 - **CSV:**
   - Preset `nubank_conta` (`Data,Valor,Identificador,Descrição`, `dd/mm/aaaa`, ponto decimal), detectado pelo cabeçalho no modo `auto`.
@@ -28,7 +29,8 @@ Arquivos para testar: [`docs/exemplos/extrato-exemplo.csv`](../exemplos/extrato-
   - Linhas vazias são ignoradas. Linhas inválidas são reportadas com o número real da linha.
 - **Sem identificador do banco:** `external_id` = hash de data, valor, descrição normalizada e **nº da repetição** no arquivo. É estável entre reimportações e distingue dois lançamentos iguais no mesmo dia.
 - **Sinal:** negativo → despesa, positivo → receita. A linha guarda o valor absoluto.
-- **Conteúdo:** fica em `ImportBatch.raw`, limite de 2 MB. Não há `FileField` porque o servidor não tem disco persistente.
+- **Conteúdo:** fica em `ImportBatch.raw`, limite de 2 MB. Não há `FileField` porque o servidor não tem disco persistente. É **limpo** depois de confirmar ou falhar, e a listagem nem o carrega (`defer`).
+- **Qualquer erro de leitura**, inclusive inesperado, marca o lote como `failed` com mensagem. Nenhum lote fica preso em `processing`. Mapeamento que não é um objeto JSON de textos → 422 já no upload.
 
 ## Prévia
 - **Duplicado** (desmarcado por padrão):
@@ -46,16 +48,16 @@ Arquivos para testar: [`docs/exemplos/extrato-exemplo.csv`](../exemplos/extrato-
   - Cria lançamentos **efetivados** com `import_batch` e `external_id`.
   - É atômico e trava o lote: uma segunda confirmação → 409.
   - Uma categoria de outro usuário ou de outro tipo → 422.
-- **Aprender** (opt-in, desligado por padrão): cada linha cuja categoria foi trocada cria ou atualiza a regra com padrão = descrição normalizada, prioridade 10 (acima das manuais, que são 0).
+- **Aprender** (opt-in, desligado por padrão): cada **padrão distinto** cuja categoria foi trocada cria ou atualiza uma regra com padrão = descrição normalizada e prioridade 10. Uma regra **feita à mão** com o mesmo padrão nunca é sobrescrita nem reativada. `rules_learned` conta regras, não linhas.
 - **Desfazer:**
-  - Lote confirmado: remove os lançamentos dele e marca `undone`.
+  - Lote confirmado: remove os lançamentos dele e marca `undone`. Se algum deles estiver numa fatura paga (foi movido para um cartão), responde **409** e não remove nada.
   - Prévia ou falha: descarta o lote.
   - Relê o lote do banco antes de decidir, porque o objeto em mãos pode estar desatualizado.
 
 ## Endpoints
 | Rota | Notas |
 |---|---|
-| `POST /api/imports` | multipart: `file`, `account_id`, `preset` (`auto`/`nubank_conta`/`personalizado`), `mapping` (JSON). Conta alheia, arquivo > 2 MB, extensão diferente de `.ofx/.qfx/.csv/.txt`, CSV sem colunas reconhecidas ou JSON inválido → 422. Exige CSRF. |
+| `POST /api/imports` | multipart: `file`, `account_id`, `preset` (`auto`/`nubank_conta`/`personalizado`), `mapping` (JSON). Conta alheia ou arquivada, arquivo > 2 MB, extensão diferente de `.ofx/.qfx/.csv/.txt`, CSV sem colunas reconhecidas ou JSON inválido → 422. Exige CSRF. |
 | `GET /api/imports` | Últimos 20 lotes |
 | `GET /api/imports/{id}` | Lote + linhas |
 | `POST /api/imports/{id}/confirm` | `{rows, learn}` → `{created, rules_learned}` |
@@ -75,3 +77,4 @@ Arquivos para testar: [`docs/exemplos/extrato-exemplo.csv`](../exemplos/extrato-
 
 ## Histórico de mudanças
 - 2026-11-16: criação (Fase 6).
+- 2026-11-16: revisão da Fase 6. Lote nunca fica preso, desfazer respeita fatura paga, regra manual preservada, conta arquivada recusada, `raw` limpo, decimal do OFX, `ImportConflict` (409 por tipo) e tela de erro para lote inexistente.
