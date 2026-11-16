@@ -14,6 +14,7 @@ from apps.finance.installments import create_plan
 from apps.finance.models import (
     Account,
     Budget,
+    CategorizationRule,
     Category,
     CreditCard,
     InstallmentPlan,
@@ -80,6 +81,16 @@ BUDGETS = {
     "Assinaturas": "70.00",
     "Educação": "500.00",
 }
+
+# Regras de categorização prontas: a prévia de importação já chega com sugestões
+# (docs/exemplos/extrato-exemplo.csv usa essas descrições).
+RULES = [
+    ("uber", "Transporte"),
+    ("supermercado", "Mercado"),
+    ("padaria", "Mercado"),
+    ("farmacia", "Saúde"),
+    ("restaurante", "Restaurantes"),
+]
 
 TRIP = [  # mês de viagem (4 meses atrás), com a tag "viagem"
     ("Passagens aéreas", "Lazer", "1890.00"),
@@ -258,6 +269,13 @@ def seed_demo(user, today: datetime.date | None = None, reset: bool = False) -> 
 
     for rule in rules.values():
         generate(rule, today)  # próximas ocorrências pendentes (até 60 dias)
+
+    CategorizationRule.objects.bulk_create(
+        CategorizationRule(
+            user=user, pattern=pattern, category=cats[("expense", cat)], kind="expense"
+        )
+        for pattern, cat in RULES
+    )
 
     Budget.objects.bulk_create(
         Budget(
