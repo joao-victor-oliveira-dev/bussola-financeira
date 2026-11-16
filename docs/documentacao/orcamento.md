@@ -32,7 +32,7 @@ O usuário define um limite mensal de gasto por categoria principal de despesa e
 ## Endpoints
 | Rota | Notas |
 |---|---|
-| `GET /api/budgets?month=YYYY-MM` | `{month, items[], totals{limit, spent, remaining}, unbudgeted[]}` |
+| `GET /api/budgets?month=YYYY-MM` | `{month, items[], totals{limit, spent, remaining, percent, status}, unbudgeted[]}` |
 | `POST /api/budgets` | `{category_id, month, limit}` → 201 com o item calculado |
 | `PATCH /api/budgets/{id}` | `{limit}` |
 | `DELETE /api/budgets/{id}` | 204 |
